@@ -1,2 +1,2 @@
 # Finews
-Financial News and Signals Aggregator
+Financial News and Signals Aggregator.
