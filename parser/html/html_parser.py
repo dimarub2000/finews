@@ -34,9 +34,27 @@ class FinamCoreParser(HtmlParser):  # parsing refs from Finam main page
             return text.get_text()
 
 
+class BCSParser(HtmlParser):
+    def parse(self, soup):
+        docs = []
+        for news in soup.find_all('a', class_='feed-item__head', limit=5):
+            new_url = 'https://www.bcs-express.ru' + news.get('href')
+            bcs_parser = BCSCoreParser(new_url)
+            res = bcs_parser.get_html_file()
+            if res is not None:
+                docs.append(res)
+        return docs
+
+
+class BCSCoreParser(HtmlParser):
+    def parse(self, soup):
+        text = soup.find('div', class_='article__text')
+        return text.get_text()
+
+
 # example
-url = 'https://www.finam.ru/analysis/nslent/'
-parser = FinamParser(url)
+url = 'https://bcs-express.ru/category/mirovye-rynki'
+parser = BCSParser(url)
 res = parser.get_html_file()
 for elem in res:
     print(elem)
