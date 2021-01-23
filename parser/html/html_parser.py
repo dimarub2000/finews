@@ -1,5 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
+import dateparser
 
 
 class HtmlParser(object):
@@ -49,7 +50,8 @@ class BCSParser(HtmlParser):
 class BCSCoreParser(HtmlParser):
     def parse(self, soup):
         text = soup.find('div', class_='article__text')
-        return text.get_text()
+        date = dateparser.parse(soup.find('div', class_='article__info-time').get_text().strip()).strftime("%m/%d/%Y, %H:%M:%S")
+        return {'text': text.get_text(), 'date': date}
 
 
 # example
