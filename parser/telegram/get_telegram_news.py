@@ -2,6 +2,7 @@ import configparser
 import json
 import asyncio
 from datetime import date, datetime
+import time
 
 from telethon import TelegramClient
 from telethon.errors import SessionPasswordNeededError
@@ -23,7 +24,8 @@ class DateTimeEncoder(json.JSONEncoder):
 
 def create_client():
     config = configparser.ConfigParser()
-    config.read("telegram_data/config.ini")
+    config.read("config.ini")
+    print(config['Telegram'])
 
     api_id = config['Telegram']['api_id']  # need one acc, for now there is a problem to secure id and hash
     api_hash = str(config['Telegram']['api_hash'])
@@ -48,7 +50,7 @@ async def process(phone, client):
             await client.sign_in(password=input('Password: '))
     #me = await client.get_me()
 
-    user_input_channel = input('enter entity(telegram URL or entity id):')
+    user_input_channel = 'https://t.me/Full_Time_Trading' # cюда подойдут любые тг каналы
 
     if user_input_channel.isdigit():
         entity = PeerChannel(int(user_input_channel))
@@ -81,7 +83,7 @@ async def process(phone, client):
         messages = history.messages
 
         for message in messages:
-            msg = message.to_dict()  # problem with russian letters, unicode
+            msg = message.to_dict()
             all_messages.append(msg)
 
         offset_id = messages[len(messages) - 1].id
@@ -89,9 +91,20 @@ async def process(phone, client):
         if total_count_limit != 0 and total_messages >= total_count_limit:
             break
 
-    with open('channel_messages.json', 'w') as outfile:
-        json.dump(all_messages, outfile, cls=DateTimeEncoder)
+    with open('channel_messages.json', 'r+') as outfile:
+        data = json.load(outfile)
+
+        if len(data) == 0 or all_messages[0]['id'] != data[-1]['id']:
+            all_messages[0] = {'text': all_messages[0]['message'], 'date': all_messages[0]['date'],
+                               'id': all_messages[0]['id']} # можно вытащить ГОРАЗДО больше метаинфы
+            data.append(all_messages[0])
+
+        outfile.seek(0)
+
+        json.dump(data, outfile, cls=DateTimeEncoder, ensure_ascii=False)
 
 phone, client = create_client()
-with client:
-    client.loop.run_until_complete(process(phone, client))
+while True:
+    if int(time.time()) % 120 == 0:
+        with client:
+            client.loop.run_until_complete(process(phone, client))
