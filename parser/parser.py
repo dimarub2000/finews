@@ -1,74 +1,73 @@
 from typing import List
 
 import web_sites.html_parser as html_pars
-# import telegram.get_telegram_news as tg
+import telegram.get_telegram_news as tg
 from datetime import datetime, time
 import time
 import json
 
 
-class HtmlSource(object):
-    def __init__(self, parser, name, last_time):
+class Source(object):
+    def __init__(self, parser, name, last_time, type):
         self.last_time = last_time
         self.parser = parser
         self.name = name
+        self.type = type
 
 
-def init_html_sources() -> List[HtmlSource]:
-    html_sources = [
-        HtmlSource(
+def init_sources() -> List[Source]:
+    sources = [
+        Source(
             html_pars.BCSParser('https://bcs-express.ru/category/mirovye-rynki', 5),
             'BCS',
             None,
+            'html'
         ),
-        HtmlSource(
+        Source(
             html_pars.FinamParser('https://www.finam.ru/analysis/nslent/', 5),
             'Finam',
             None,
+            'html'
         ),
+        Source(
+            'https://t.me/Full_Time_Trading',
+            'Full Time Trading',
+            None,
+            'tg'
+        ),
+        Source(
+            'https://t.me/stock_and_news',
+            'Financial Times',
+            None,
+            'tg'
+        )
     ]
-    return html_sources
+    return sources
 
 
-def get_html_news(html_sources: List[HtmlSource]) -> List[dict]:
+def get_html_news(sources: List[Source]) -> List[dict]:
     collected_news = []
 
-    for html_source in html_sources:
-        res = json.loads(html_source.parser.get_data())
-        last_time = html_source.last_time
+    for source in sources:
+        res = None
+        if source.type == 'html':
+            res = json.loads(source.parser.get_data())
+        elif source.type == 'tg':
+            res = json.loads(tg.get_telegram_news(source.parser))
+        last_time = source.last_time
 
         for news in res:
             news_time = news['time']
-            if html_source.last_time is None or html_source.last_time < news_time:
+            if source.last_time is None or source.last_time < news_time:
                 collected_news.append(news)
             if last_time is None or last_time < news_time:
                 last_time = news_time
 
-        html_source.last_time = last_time
+        source.last_time = last_time
 
     return collected_news
 
 
-# class DateTimeEncoder(json.JSONEncoder):
-#     def default(self, o):
-#         if isinstance(o, datetime):
-#             return o.isoformat()
-#         if isinstance(o, time):
-#             return o.isoformat()
-#         return json.JSONEncoder.default(self, o)
-#
-#
-# def send(data):
-#     with open('channel_messages.json', 'r+') as outfile:
-#         messages = json.load(outfile)
-#
-#         outfile.seek(0)
-#         for x in data:
-#             if x in messages:
-#                 data.pop(x)
-#
-#         messages += data
-#         json.dump(messages, outfile, cls=DateTimeEncoder, ensure_ascii=False)
 
 def send(data) -> None:
     for news in data:
@@ -76,7 +75,7 @@ def send(data) -> None:
 
 
 def main():
-    html_sources = init_html_sources()
+    html_sources = init_sources()
     while True:
         data = get_html_news(html_sources)
         send(data)

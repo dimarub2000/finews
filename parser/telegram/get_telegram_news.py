@@ -37,7 +37,7 @@ def create_client():
 
 
 
-async def process(phone, client, ans_message):
+async def process(phone, client, link):
     await client.start()
 
     # Ensure you're authorized
@@ -49,7 +49,7 @@ async def process(phone, client, ans_message):
             await client.sign_in(password=input('Password: '))
     #me = await client.get_me()
 
-    user_input_channel = 'https://t.me/Full_Time_Trading'# cюда подойдут любые тг каналы
+    user_input_channel = link;
 
     if user_input_channel.isdigit():
         entity = PeerChannel(int(user_input_channel))
@@ -90,19 +90,15 @@ async def process(phone, client, ans_message):
         if total_count_limit != 0 and total_messages >= total_count_limit:
             break
 
-    return {'text': all_messages[0]['message'], 'date': all_messages[0]['date'],
+    return {'text': all_messages[0]['message'], 'time': all_messages[0]['date'].strftime("%Y-%m-%d, %H:%M:%S"), # надо чекнуть приведется ли время
             'id': all_messages[0]['id'], 'source': user_input_channel}# можно вытащить ГОРАЗДО больше метаинфы
 
 
-def get_telegram_news():
+def get_telegram_news(link):
     phone, client = create_client()
 
-    ans_message = {}# i am not sure that it's working like this
-
     with client:
-        ans_message = client.loop.run_until_complete(process(phone, client, ans_message))
+        ans_message = client.loop.run_until_complete(process(phone, client, link))
 
-    print(ans_message)
-
-    return ans_message
+    return json.dumps([ans_message])
 
