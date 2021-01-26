@@ -1,5 +1,6 @@
 from .html.html_parser import BCSParser, FinamParser
 import time
+import json
 
 html_sources = [BCSParser('https://bcs-express.ru/category/mirovye-rynki'),
                 FinamParser('https://www.finam.ru/analysis/nslent/')]
@@ -33,7 +34,7 @@ def main():
         new_data = []
         new_data += get_html_news()
         # += telegram news
-        send(new_data)
+        send(json.dumps(new_data))
         time.sleep(600)
 
 
