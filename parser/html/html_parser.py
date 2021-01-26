@@ -20,7 +20,7 @@ class FinamParser(HtmlParser):
     def parse(self, soup):
         docs = []
         for news in soup.find_all('td', class_='ntitle bdotline', limit=5):
-            for link in news.find_all('a'):
+            for link in news.find_all('a', class_='f-fake-url', limit=1):
                 new_url = 'https://www.finam.ru' + link.get('href')
                 finam_parser = FinamCoreParser(new_url)
                 res = finam_parser.get_data()
@@ -31,8 +31,9 @@ class FinamParser(HtmlParser):
 
 class FinamCoreParser(HtmlParser):  # parsing refs from Finam main page
     def parse(self, soup):
-        for text in soup.find_all('div', class_='handmade mid f-newsitem-text', limit=1):
-            return {'text': text.get_text(), 'source': 'Finam'}
+        text = soup.find('div', class_='handmade mid f-newsitem-text')
+        date = dateparser.parse(soup.find('div', class_='sm lightgrey mb05 mt15').get_text()[:17]).strftime("%m/%d/%Y, %H:%M:%S")
+        return {'text': text.get_text(), 'source': 'Finam', 'date': date}
 
 
 class BCSParser(HtmlParser):
@@ -55,8 +56,8 @@ class BCSCoreParser(HtmlParser):
 
 
 # example
-url = 'https://bcs-express.ru/category/mirovye-rynki'
-parser = BCSParser(url)
+url = 'https://www.finam.ru/analysis/nslent/'
+parser = FinamParser(url)
 res = parser.get_data()
 for elem in res:
     print(elem)
