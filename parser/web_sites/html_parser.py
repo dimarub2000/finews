@@ -6,7 +6,8 @@ from bs4 import BeautifulSoup
 
 class HtmlParser(object):
     """Parses single html page to JSON"""
-    def __init__(self, url):
+    def __init__(self, url, limit=1):
+        self.limit = limit
         self.url = url
 
     def get_data(self) -> str:
@@ -17,11 +18,15 @@ class HtmlParser(object):
     def parse(self, soup) -> str:
         return json.dumps({'Parse error'})
 
+    @staticmethod
+    def format_time(date_data) -> str:
+        return date_data.strftime("%Y-%m-%d, %H:%M:%S")
+
 
 class FinamParser(HtmlParser):
     def parse(self, soup):
         docs = []
-        for news in soup.find_all('td', class_='ntitle bdotline', limit=5):
+        for news in soup.find_all('td', class_='ntitle bdotline', limit=self.limit):
             for link in news.find_all('a', class_='f-fake-url', limit=1):
                 new_url = 'https://www.finam.ru' + link.get('href')
                 finam_parser = FinamCoreParser(new_url)
@@ -33,15 +38,15 @@ class FinamParser(HtmlParser):
 
 class FinamCoreParser(HtmlParser):
     def parse(self, soup):
-        text = soup.find('div', class_='handmade mid f-newsitem-text').get_text()
-        date = dateparser.parse(soup.find('div', class_='sm lightgrey mb05 mt15').get_text()[:17]).strftime("%m/%d/%Y, %H:%M:%S")
-        return json.dumps({'text': text, 'date': date, 'source': 'Finam'})
+        text = soup.find('div', class_='handmade mid f-newsitem-text').get_text().strip()
+        time = self.format_time(dateparser.parse(soup.find('div', class_='sm lightgrey mb05 mt15').get_text()[:17]))
+        return json.dumps({'text': text, 'time': time, 'source': 'Finam'})
 
 
 class BCSParser(HtmlParser):
     def parse(self, soup):
         docs = []
-        for news in soup.find_all('a', class_='feed-item__head', limit=5):
+        for news in soup.find_all('a', class_='feed-item__head', limit=self.limit):
             new_url = 'https://www.bcs-express.ru' + news.get('href')
             bcs_parser = BCSCoreParser(new_url)
             res = json.loads(bcs_parser.get_data())
@@ -52,9 +57,9 @@ class BCSParser(HtmlParser):
 
 class BCSCoreParser(HtmlParser):
     def parse(self, soup):
-        text = soup.find('div', class_='article__text').get_text()
-        date = dateparser.parse(soup.find('div', class_='article__info-time').get_text().strip()).strftime("%m/%d/%Y, %H:%M:%S")
-        return json.dumps({'text': text, 'date': date, 'source': 'BCS'})
+        text = soup.find('div', class_='article__text').get_text().strip()
+        time = self.format_time(dateparser.parse(soup.find('div', class_='article__info-time').get_text().strip()))
+        return json.dumps({'text': text, 'time': time, 'source': 'BCS'})
 
 
 def main():
@@ -63,7 +68,6 @@ def main():
     res = json.loads(parser.get_data())
     for elem in res:
         print(elem)
-        print('----------------------------------')
 
 
 if __name__ == '__main__':
