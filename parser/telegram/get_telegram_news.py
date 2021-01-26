@@ -11,61 +11,43 @@ from telethon.tl.types import (
     PeerChannel
 )
 
-# some functions to parse json date
-class DateTimeEncoder(json.JSONEncoder):
-    def default(self, o):
-        if isinstance(o, datetime):
-            return o.isoformat()
+class TgParser(object):
+    def __init__(self, link, batch=1):
+        config = configparser.ConfigParser()
+        config.read("config.ini")
 
-        if isinstance(o, bytes):
-            return list(o)
+        api_id = config['Telegram']['api_id']  # need one acc, for now there is a problem to secure id and hash
+        api_hash = str(config['Telegram']['api_hash'])
+        self.phone = config['Telegram']['phone']
+        username = config['Telegram']['username']
 
-        return json.JSONEncoder.default(self, o)
+        self.client = TelegramClient(username, api_id, api_hash)
+        self.link = link
+        self.batch = batch
 
-def create_client():
-    config = configparser.ConfigParser()
-    config.read("config.ini")
+    async def process(self):
+        await self.client.start()
 
-    api_id = config['Telegram']['api_id']  # need one acc, for now there is a problem to secure id and hash
-    api_hash = str(config['Telegram']['api_hash'])
-    phone = config['Telegram']['phone']
-    username = config['Telegram']['username']
+        # Ensure you're authorized
+        if not await self.client.is_user_authorized():
+            await self.client.send_code_request(self.phone)
+            try:
+                await self.client.sign_in(self.phone, input('Enter the code from telegram message: '))
+            except SessionPasswordNeededError:
+                await self.client.sign_in(password=input('Password: '))
 
-    client = TelegramClient(username, api_id, api_hash)
+        if self.link.isdigit():
+            entity = PeerChannel(int(self.link))
+        else:
+            entity = self.link
 
-    return phone, client
+        my_channel = await self.client.get_entity(entity)
 
+        offset_id = 0
+        limit = self.batch
+        all_messages = []
 
-
-async def process(phone, client, link):
-    await client.start()
-
-    # Ensure you're authorized
-    if await client.is_user_authorized() == False:
-        await client.send_code_request(phone)
-        try:
-            await client.sign_in(phone, input('Enter the code from telegram message: '))
-        except SessionPasswordNeededError:
-            await client.sign_in(password=input('Password: '))
-    #me = await client.get_me()
-
-    user_input_channel = link;
-
-    if user_input_channel.isdigit():
-        entity = PeerChannel(int(user_input_channel))
-    else:
-        entity = user_input_channel
-
-    my_channel = await client.get_entity(entity)
-
-    offset_id = 0
-    limit = 1  # batch
-    all_messages = []
-    total_messages = 0
-    total_count_limit = 1  # all messages limit
-
-    while True:
-        history = await client(GetHistoryRequest(
+        history = await self.client(GetHistoryRequest(
             peer=my_channel,
             offset_id=offset_id,
             offset_date=None,
@@ -76,29 +58,20 @@ async def process(phone, client, link):
             hash=0
         ))
 
-        if not history.messages:
-            break
-
         messages = history.messages
 
         for message in messages:
             msg = message.to_dict()
+            msg = {'text': msg['message'], 'time': msg['date'].strftime("%Y-%m-%d, %H:%M:%S"),
+                   'id': msg['id'], 'source': self.link}  # можно вытащить ГОРАЗДО больше метаинфы
             all_messages.append(msg)
 
-        offset_id = messages[len(messages) - 1].id
-        total_messages = len(all_messages)
-        if total_count_limit != 0 and total_messages >= total_count_limit:
-            break
+        return all_messages
 
-    return {'text': all_messages[0]['message'], 'time': all_messages[0]['date'].strftime("%Y-%m-%d, %H:%M:%S"), # надо чекнуть приведется ли время
-            'id': all_messages[0]['id'], 'source': user_input_channel}# можно вытащить ГОРАЗДО больше метаинфы
+    def get_data(self):
+        with self.client:
+            ans_message = self.client.loop.run_until_complete(self.process())
 
+        return json.dumps(ans_message)
 
-def get_telegram_news(link):
-    phone, client = create_client()
-
-    with client:
-        ans_message = client.loop.run_until_complete(process(phone, client, link))
-
-    return json.dumps([ans_message])
 
