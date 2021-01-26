@@ -40,7 +40,7 @@ class FinamCoreParser(HtmlParser):
     def parse(self, soup):
         text = soup.find('div', class_='handmade mid f-newsitem-text').get_text().strip()
         time = self.format_time(dateparser.parse(soup.find('div', class_='sm lightgrey mb05 mt15').get_text()[:17]))
-        return json.dumps({'text': text, 'time': time, 'source': 'Finam'})
+        return json.dumps({'text': text, 'time': time, 'source': 'Finam', 'link': self.url})
 
 
 class BCSParser(HtmlParser):
@@ -59,7 +59,7 @@ class BCSCoreParser(HtmlParser):
     def parse(self, soup):
         text = soup.find('div', class_='article__text').get_text().strip()
         time = self.format_time(dateparser.parse(soup.find('div', class_='article__info-time').get_text().strip()))
-        return json.dumps({'text': text, 'time': time, 'source': 'BCS'})
+        return json.dumps({'text': text, 'time': time, 'source': 'BCS', 'link': self.url})
 
 
 def main():
