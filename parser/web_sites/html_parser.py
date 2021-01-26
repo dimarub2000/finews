@@ -1,11 +1,13 @@
 import json
 import requests
 import dateparser
+from datetime import datetime
 from bs4 import BeautifulSoup
 
 
 class HtmlParser(object):
     """Parses single html page to JSON"""
+
     def __init__(self, url, limit=1):
         self.limit = limit
         self.url = url
@@ -19,8 +21,8 @@ class HtmlParser(object):
         return json.dumps({'Parse error'})
 
     @staticmethod
-    def format_time(date_data) -> str:
-        return date_data.strftime("%Y-%m-%d, %H:%M:%S")
+    def format_time(date_data, format_="%Y-%m-%d, %H:%M:%S") -> str:
+        return date_data.strftime(format_)
 
 
 class FinamParser(HtmlParser):
@@ -62,9 +64,21 @@ class BCSCoreParser(HtmlParser):
         return json.dumps({'text': text, 'time': time, 'source': 'BCS', 'link': self.url})
 
 
+class RBKParser(HtmlParser):
+    def parse(self, soup):
+        docs = []
+        for news in soup.find_all('div', class_='q-item js-load-item', limit=5):
+            time = self.format_time(dateparser.parse(news.find('span', class_='q-item__date__text').get_text().strip()))
+            text = news.find('span', class_='q-item__title').get_text().strip() + '.\n' \
+                   + news.find('span', class_='q-item__description').get_text().strip() + '.\nПодробнее: ' \
+                   + news.find('a', class_='q-item__link').get('href')
+            docs.append({'text': text, 'time': time, 'source': 'RBK'})
+        return json.dumps(docs)
+
+
 def main():
-    url = 'https://www.finam.ru/analysis/nslent/'
-    parser = FinamParser(url)
+    url = 'https://quote.rbc.ru/'
+    parser = RBKParser(url)
     res = json.loads(parser.get_data())
     for elem in res:
         print(elem)
@@ -72,4 +86,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
