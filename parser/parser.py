@@ -68,10 +68,9 @@ def get_html_news(sources: List[Source]) -> List[dict]:
     return collected_news
 
 
-
 def send(data) -> None:
     for news in data:
-        print("%s, %s" % (news['source'], news['time']))
+        print("%s, %s, %s" % (news['source'], news['time'], news['link']))
 
 
 def main():
