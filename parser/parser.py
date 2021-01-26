@@ -30,13 +30,13 @@ def init_sources() -> List[Source]:
             'html'
         ),
         Source(
-            'https://t.me/Full_Time_Trading',
+            tg.TgParser('https://t.me/Full_Time_Trading', 1),
             'Full Time Trading',
             None,
             'tg'
         ),
         Source(
-            'https://t.me/stock_and_news',
+            tg.TgParser('https://t.me/stock_and_news', 1),
             'Financial Times',
             None,
             'tg'
@@ -49,11 +49,7 @@ def get_html_news(sources: List[Source]) -> List[dict]:
     collected_news = []
 
     for source in sources:
-        res = None
-        if source.type == 'html':
-            res = json.loads(source.parser.get_data())
-        elif source.type == 'tg':
-            res = json.loads(tg.get_telegram_news(source.parser))
+        res = json.loads(source.parser.get_data())
         last_time = source.last_time
 
         for news in res:
