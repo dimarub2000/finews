@@ -7,12 +7,11 @@ import time
 from telethon import TelegramClient
 from telethon.errors import SessionPasswordNeededError
 from telethon.tl.functions.messages import (GetHistoryRequest)
-from telethon.tl.types import (
-    PeerChannel
-)
+from telethon.tl.types import PeerChannel
+
 
 class TgParser(object):
-    def __init__(self, link, batch=1):
+    def __init__(self, url, limit=1):
         config = configparser.ConfigParser()
         config.read("config.ini")
 
@@ -22,8 +21,8 @@ class TgParser(object):
         username = config['Telegram']['username']
 
         self.client = TelegramClient(username, api_id, api_hash)
-        self.link = link
-        self.batch = batch
+        self.url = url
+        self.limit = limit
 
     async def process(self):
         await self.client.start()
@@ -36,15 +35,15 @@ class TgParser(object):
             except SessionPasswordNeededError:
                 await self.client.sign_in(password=input('Password: '))
 
-        if self.link.isdigit():
-            entity = PeerChannel(int(self.link))
+        if self.url.isdigit():
+            entity = PeerChannel(int(self.url))
         else:
-            entity = self.link
+            entity = self.url
 
         my_channel = await self.client.get_entity(entity)
 
         offset_id = 0
-        limit = self.batch
+        limit = self.limit
         all_messages = []
 
         history = await self.client(GetHistoryRequest(
@@ -62,8 +61,12 @@ class TgParser(object):
 
         for message in messages:
             msg = message.to_dict()
-            msg = {'text': msg['message'], 'time': msg['date'].strftime("%Y-%m-%d, %H:%M:%S"),
-                   'id': msg['id'], 'source': self.link}  # можно вытащить ГОРАЗДО больше метаинфы
+            msg = {
+                'text': msg['message'],
+                'time': msg['date'].strftime("%Y-%m-%d, %H:%M:%S"),
+                'source': 'Telegram',
+                'link': self.url
+            }
             all_messages.append(msg)
 
         return all_messages

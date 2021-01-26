@@ -1,7 +1,6 @@
 import json
 import requests
 import dateparser
-from datetime import datetime
 from bs4 import BeautifulSoup
 
 
@@ -69,10 +68,13 @@ class RBKParser(HtmlParser):
         docs = []
         for news in soup.find_all('div', class_='q-item js-load-item', limit=5):
             time = self.format_time(dateparser.parse(news.find('span', class_='q-item__date__text').get_text().strip()))
-            text = news.find('span', class_='q-item__title').get_text().strip() + '.\n' \
-                   + news.find('span', class_='q-item__description').get_text().strip() + '.\nПодробнее: ' \
-                   + news.find('a', class_='q-item__link').get('href')
-            docs.append({'text': text, 'time': time, 'source': 'RBK'})
+            link = news.find('a', class_='q-item__link').get('href')
+            text = '%s.\n%s.\nПодробнее: %s' % (
+                news.find('span', class_='q-item__title').get_text().strip(),
+                news.find('span', class_='q-item__description').get_text().strip(),
+                link
+            )
+            docs.append({'text': text, 'time': time, 'source': 'RBK', 'link': link})
         return json.dumps(docs)
 
 

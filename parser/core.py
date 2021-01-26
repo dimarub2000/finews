@@ -30,17 +30,29 @@ def init_sources() -> List[Source]:
             'html'
         ),
         Source(
-            tg.TgParser('https://t.me/Full_Time_Trading', 1),
-            'Full Time Trading',
+            html_pars.RBKParser('https://quote.rbc.ru/', 5),
+            'RBK',
             None,
-            'tg'
+            'html'
         ),
-        Source(
-            tg.TgParser('https://t.me/stock_and_news', 1),
-            'Financial Times',
-            None,
-            'tg'
-        )
+        # Source(
+        #     tg.TgParser('https://t.me/Full_Time_Trading', 1),
+        #     'Full Time Trading',
+        #     None,
+        #     'html'
+        # ),
+        # Source(
+        #     tg.TgParser('https://t.me/Full_Time_Trading', 1),
+        #     'Full Time Trading',
+        #     None,
+        #     'tg'
+        # ),
+        # Source(
+        #     tg.TgParser('https://t.me/stock_and_news', 1),
+        #     'Financial Times',
+        #     None,
+        #     'tg'
+        # )
     ]
     return sources
 
