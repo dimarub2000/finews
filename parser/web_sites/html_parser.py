@@ -2,14 +2,14 @@ import json
 import requests
 import dateparser
 from bs4 import BeautifulSoup
+from parser import Parser
 
 
-class HtmlParser(object):
+class HtmlParser(Parser):
     """Parses single html page to JSON"""
 
     def __init__(self, url, limit=1):
-        self.limit = limit
-        self.url = url
+        super().__init__(url, limit)
 
     def get_data(self) -> str:
         resp = requests.get(self.url)

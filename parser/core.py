@@ -7,12 +7,21 @@ import time
 import json
 
 
+class Parser(object):
+    def __init__(self, url, limit=1):
+        self.limit = limit
+        self.url = url
+
+    def get_data(self) -> str:
+        return "No data"
+
+
 class Source(object):
-    def __init__(self, parser, name, last_time, type):
+    def __init__(self, parser, name, last_time, _type):
         self.last_time = last_time
         self.parser = parser
         self.name = name
-        self.type = type
+        self.type = _type
 
 
 def init_sources() -> List[Source]:
@@ -84,8 +93,12 @@ def send(data) -> None:
 def main():
     html_sources = init_sources()
     while True:
+        print('Searching for news....')
+        start_time = time.perf_counter()
         data = get_html_news(html_sources)
         send(data)
+        elapsed_time = time.perf_counter() - start_time
+        print(f"Elapsed time: {elapsed_time:0.4f} seconds")
         time.sleep(600)
 
 

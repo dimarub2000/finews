@@ -3,6 +3,7 @@ import json
 import asyncio
 from datetime import date, datetime
 import time
+from parser import Parser
 
 from telethon import TelegramClient
 from telethon.errors import SessionPasswordNeededError
@@ -10,8 +11,9 @@ from telethon.tl.functions.messages import (GetHistoryRequest)
 from telethon.tl.types import PeerChannel
 
 
-class TgParser(object):
+class TgParser(Parser):
     def __init__(self, url, limit=1):
+        super().__init__(url, limit)
         config = configparser.ConfigParser()
         config.read("config.ini")
 
@@ -21,8 +23,6 @@ class TgParser(object):
         username = config['Telegram']['username']
 
         self.client = TelegramClient(username, api_id, api_hash)
-        self.url = url
-        self.limit = limit
 
     async def process(self):
         await self.client.start()
