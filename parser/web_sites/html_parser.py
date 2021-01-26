@@ -9,7 +9,7 @@ class HtmlParser(object):
 
     def get_data(self):
         resp = requests.get(self.url)
-        soup = BeautifulSoup(resp.text, 'html.parser')
+        soup = BeautifulSoup(resp.text, 'web_sites.parser')
         return self.parse(soup)
 
     def parse(self, soup):

@@ -25,7 +25,6 @@ class DateTimeEncoder(json.JSONEncoder):
 def create_client():
     config = configparser.ConfigParser()
     config.read("config.ini")
-    print(config['Telegram'])
 
     api_id = config['Telegram']['api_id']  # need one acc, for now there is a problem to secure id and hash
     api_hash = str(config['Telegram']['api_hash'])
@@ -38,7 +37,7 @@ def create_client():
 
 
 
-async def process(phone, client):
+async def process(phone, client, ans_message):
     await client.start()
 
     # Ensure you're authorized
@@ -50,7 +49,7 @@ async def process(phone, client):
             await client.sign_in(password=input('Password: '))
     #me = await client.get_me()
 
-    user_input_channel = 'https://t.me/Full_Time_Trading' # cюда подойдут любые тг каналы
+    user_input_channel = 'https://t.me/Full_Time_Trading'# cюда подойдут любые тг каналы
 
     if user_input_channel.isdigit():
         entity = PeerChannel(int(user_input_channel))
@@ -91,20 +90,19 @@ async def process(phone, client):
         if total_count_limit != 0 and total_messages >= total_count_limit:
             break
 
-    with open('channel_messages.json', 'r+') as outfile:
-        data = json.load(outfile)
+    return {'text': all_messages[0]['message'], 'date': all_messages[0]['date'],
+            'id': all_messages[0]['id'], 'source': user_input_channel}# можно вытащить ГОРАЗДО больше метаинфы
 
-        if len(data) == 0 or all_messages[0]['id'] != data[-1]['id']:
-            all_messages[0] = {'text': all_messages[0]['message'], 'date': all_messages[0]['date'],
-                               'id': all_messages[0]['id']} # можно вытащить ГОРАЗДО больше метаинфы
-            data.append(all_messages[0])
 
-        outfile.seek(0)
+def get_telegram_news():
+    phone, client = create_client()
 
-        json.dump(data, outfile, cls=DateTimeEncoder, ensure_ascii=False)
+    ans_message = {}# i am not sure that it's working like this
 
-phone, client = create_client()
-while True:
-    if int(time.time()) % 120 == 0:
-        with client:
-            client.loop.run_until_complete(process(phone, client))
+    with client:
+        ans_message = client.loop.run_until_complete(process(phone, client, ans_message))
+
+    print(ans_message)
+
+    return ans_message
+

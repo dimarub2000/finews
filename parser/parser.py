@@ -1,9 +1,19 @@
-from .html.html_parser import BCSParser, FinamParser
+import web_sites.html_parser as html_pars
+import telegram.get_telegram_news as tg
+from datetime import datetime, time
 import time
 import json
 
-html_sources = [BCSParser('https://bcs-express.ru/category/mirovye-rynki'),
-                FinamParser('https://www.finam.ru/analysis/nslent/')]
+class DateTimeEncoder(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, datetime):
+            return o.isoformat()
+        if isinstance(o, time):
+            return o.isoformat()
+        return json.JSONEncoder.default(self, o)
+
+html_sources = [html_pars.BCSParser('https://bcs-express.ru/category/mirovye-rynki'),
+                html_pars.FinamParser('https://www.finam.ru/analysis/nslent/')]
 
 last_news = {'BCSParser': None, 'FinamParser': None}
 
@@ -26,15 +36,24 @@ def get_html_news():
 
 
 def send(data):
-    pass
+    with open('channel_messages.json', 'r+') as outfile:
+        messages = json.load(outfile)
+
+        outfile.seek(0)
+        for x in data:
+            if x in messages:
+                data.pop(x)
+
+        messages += data
+        json.dump(messages, outfile, cls=DateTimeEncoder, ensure_ascii=False)
 
 
 def main():
     while True:
         new_data = []
         new_data += get_html_news()
-        # += telegram news
-        send(json.dumps(new_data))
+        new_data += [tg.get_telegram_news()]
+        send(new_data)
         time.sleep(600)
 
 
