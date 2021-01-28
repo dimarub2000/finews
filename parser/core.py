@@ -1,8 +1,9 @@
 from typing import List
 
 import web_sites.html_parser as html_pars
-import telegram.get_telegram_news as tg
+import telegram.tg_parser as tg
 from datetime import datetime, time
+import requests
 import time
 import json
 
@@ -44,24 +45,24 @@ def init_sources() -> List[Source]:
             None,
             'html'
         ),
-        # Source(
-        #     tg.TgParser('https://t.me/Full_Time_Trading', 1),
-        #     'Full Time Trading',
-        #     None,
-        #     'html'
-        # ),
-        # Source(
-        #     tg.TgParser('https://t.me/Full_Time_Trading', 1),
-        #     'Full Time Trading',
-        #     None,
-        #     'tg'
-        # ),
-        # Source(
-        #     tg.TgParser('https://t.me/stock_and_news', 1),
-        #     'Financial Times',
-        #     None,
-        #     'tg'
-        # )
+        Source(
+            tg.TgParser('https://t.me/Full_Time_Trading', 1),
+            'Full Time Trading',
+            None,
+            'html'
+        ),
+        Source(
+            tg.TgParser('https://t.me/Full_Time_Trading', 1),
+            'Full Time Trading',
+            None,
+            'tg'
+        ),
+        Source(
+            tg.TgParser('https://t.me/stock_and_news', 1),
+            'Financial Times',
+            None,
+            'tg'
+        )
     ]
     return sources
 
@@ -88,6 +89,9 @@ def get_html_news(sources: List[Source]) -> List[dict]:
 def send(data) -> None:
     for news in data:
         print("%s, %s, %s" % (news['source'], news['time'], news['link']))
+    resp = requests.post('http://127.0.0.1:5000/news', json=json.dumps(data))
+    print(resp)
+    print(requests.get('http://127.0.0.1:5000/news').text)
 
 
 def main():
