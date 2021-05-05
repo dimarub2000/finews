@@ -3,6 +3,7 @@ import json
 import requests
 import parsers.lib.parser as lib_parser
 import parsers.lib.web as lib_web
+import parsers.lib.telegram as lib_tg
 
 from typing import List
 
@@ -27,24 +28,18 @@ def init_sources() -> List[lib_parser.Source]:
             None,
             'html'
         ),
-        # Source(
-        #     tg.TgParser('https://t.me/Full_Time_Trading', 1),
-        #     'Full Time Trading',
-        #     None,
-        #     'html'
-        # ),
-        # Source(
-        #     tg.TgParser('https://t.me/Full_Time_Trading', 1),
-        #     'Full Time Trading',
-        #     None,
-        #     'tg'
-        # ),
-        # Source(
-        #     tg.TgParser('https://t.me/stock_and_news', 1),
-        #     'Financial Times',
-        #     None,
-        #     'tg'
-        # )
+        lib_parser.Source(
+            lib_tg.TgParser('https://t.me/Full_Time_Trading', 1),
+            'Full Time Trading',
+            None,
+            'tg'
+        ),
+        lib_parser.Source(
+            lib_tg.TgParser('https://t.me/stock_and_news', 1),
+            'Financial Times',
+            None,
+            'tg'
+        ),
     ]
     return sources
 
@@ -73,7 +68,7 @@ def send(data) -> None:
         print("%s, %s, %s" % (news['source'], news['time'], news['link']))
     resp = requests.post('http://127.0.0.1:5000/news', json=data)
     print(resp)
-    print(requests.get('http://127.0.0.1:5000/news').text)
+    #print(requests.get('http://127.0.0.1:5000/news').text)
 
 
 def main():
