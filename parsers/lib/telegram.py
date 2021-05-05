@@ -15,10 +15,10 @@ class TgParser(lib_parser.Parser):
 
         env_var = os.environ
 
-        api_id = int(env_var['api_id'])
-        api_hash = env_var['api_hash']
-        self.phone = env_var['phone']
-        username = env_var['username']
+        api_id = int(env_var['FINEWS_API_ID'])
+        api_hash = env_var['FINEWS_API_HASH']
+        self.phone = env_var['FINEWS_PHONE']
+        username = env_var['FINEWS_USERNAME']
 
         self.client = TelegramClient(username, api_id, api_hash)
 
