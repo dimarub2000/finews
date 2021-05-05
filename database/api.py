@@ -1,11 +1,14 @@
-from database import app, db
 import json
+import logging
+
 from flask import request
+from database import app, db
 from marshmallow import Schema, fields, post_load
+
+logger = logging.getLogger(__name__)
 
 
 class News(db.Model):
-    __tablename__ = 'news_tb'
     id = db.Column(db.Integer, primary_key=True, unique=True)
     content = db.Column(db.String(1000))
     time = db.Column(db.String(20))
@@ -33,7 +36,8 @@ many_news_schema = NewsSchema(many=True)
 
 @app.route('/news', methods=['POST'])
 def add_news():
-    data = json.loads(request.get_json())
+    data = request.get_json()
+    logger.critical("data {}".format(data))
     for news in data:
         db.session.add(News(content=news['text'],
                             time=news['time'],
@@ -51,5 +55,6 @@ def get_news():
 
 
 if __name__ == '__main__':
+    logger.critical("Creating all")
     db.create_all()
     app.run()

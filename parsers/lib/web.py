@@ -1,11 +1,12 @@
 import json
 import requests
 import dateparser
+import parsers.lib.parser as lib_parser
+
 from bs4 import BeautifulSoup
-from parser import Parser
 
 
-class HtmlParser(Parser):
+class HtmlParser(lib_parser.Parser):
     """Parses single html page to JSON"""
 
     def __init__(self, url, limit=1):

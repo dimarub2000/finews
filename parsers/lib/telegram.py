@@ -1,9 +1,6 @@
 import configparser
 import json
-import asyncio
-from datetime import date, datetime
-import time
-from parser import Parser
+import parsers.lib.parser as lib_parser
 
 from telethon import TelegramClient
 from telethon.errors import SessionPasswordNeededError
@@ -11,7 +8,7 @@ from telethon.tl.functions.messages import (GetHistoryRequest)
 from telethon.tl.types import PeerChannel
 
 
-class TgParser(Parser):
+class TgParser(lib_parser.Parser):
     def __init__(self, url, limit=1):
         super().__init__(url, limit)
         config = configparser.ConfigParser()

@@ -1,11 +1,12 @@
-from parser import Parser
-from datetime import datetime
-import vk_api
 import os
 import json
+import vk_api
+import parsers.lib.parser as lib_parser
+
+from datetime import datetime
 
 
-class VkParser(Parser):
+class VkParser(lib_parser.Parser):
     def __init__(self, url, limit=1):
         super().__init__(url, limit)
         login = os.getenv('vk_login')
