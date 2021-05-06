@@ -9,7 +9,7 @@ class News(db.Model):
     id = db.Column(db.Integer, primary_key=True, unique=True)
     time = db.Column(db.String(20))
     link = db.Column(db.String(64))
-    tags = db.relationship('Tag', backref='news')
+    tags = db.relationship('Tags', backref='news')
     source = db.Column(db.String(24))
     content = db.Column(db.String(1000))
 
@@ -28,7 +28,7 @@ class News(db.Model):
         return list(map(lambda x: x.to_dict(), news))
 
 
-class Tag(db.Model):
+class Tags(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     tag = db.Column(db.String(12), nullable=True)
     news_id = db.Column(db.Integer, db.ForeignKey('news.id'), nullable=False)
@@ -40,7 +40,6 @@ db.create_all()
 @app.route('/news', methods=['POST'])
 def add_news():
     data = request.get_json()
-
     for news in data:
         cur_news = News(
             content=news['text'],
@@ -50,7 +49,7 @@ def add_news():
         )
         db.session.add(cur_news)
         for tag in news.get('tags', []):
-            db.session.add(Tag(tag=tag, news=cur_news))
+            db.session.add(Tags(tag=tag, news=cur_news))
 
     db.session.commit()
     return 'OK\n'
@@ -72,6 +71,12 @@ def get_top():
         news = News.query.filter(News.tags.any(tag=tag)).order_by(desc(News.id)).limit(limit).all()
 
     return json.dumps(News.news_to_dict(news))
+
+
+@app.route('/tags', methods=['GET'])
+def get_tags():
+    tags = db.session.query(Tags.tag).order_by(Tags.tag).distinct().all()
+    return json.dumps(list(map(lambda x: x.tag, tags)))
 
 
 if __name__ == "__main__":
