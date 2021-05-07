@@ -28,24 +28,24 @@ def init_sources() -> List[lib_parser.Source]:
             None,
             'html'
         ),
-        lib_parser.Source(
-            lib_tg.TgParser('https://t.me/Full_Time_Trading', 1),
-            'Full Time Trading',
-            None,
-            'tg'
-        ),
-        lib_parser.Source(
-            lib_tg.TgParser('https://t.me/stock_and_news', 1),
-            'Financial Times',
-            None,
-            'tg'
-        ),
-        lib_parser.Source(
-            lib_tg.TgParser('https://t.me/mtwits', 1),
-            'Market Twits',
-            None,
-            'tg'
-        ),
+        # lib_parser.Source(
+        #     lib_tg.TgParser('https://t.me/Full_Time_Trading', 1),
+        #     'Full Time Trading',
+        #     None,
+        #     'tg'
+        # ),
+        # lib_parser.Source(
+        #     lib_tg.TgParser('https://t.me/stock_and_news', 1),
+        #     'Financial Times',
+        #     None,
+        #     'tg'
+        # ),
+        # lib_parser.Source(
+        #     lib_tg.TgParser('https://t.me/mtwits', 1),
+        #     'Market Twits',
+        #     None,
+        #     'tg'
+        # ),
     ]
     return sources
 
@@ -69,13 +69,12 @@ def get_html_news(sources: List[lib_parser.Source]) -> List[dict]:
     return collected_news
 
 
-FILTER_SERVICE_URL = 'http://127.0.0.1:4000'
-
+FILTER_SERVICE_URL = 'http://127.0.0.1:4000/'
 
 def send(data) -> None:
     for news in data:
         print("%s, %s, %s" % (news['source'], news['time'], news['link']))
-    resp = requests.post(FILTER_SERVICE_URL + '/news', json=data)
+    resp = requests.post(FILTER_SERVICE_URL, json=data)
     print(resp)
     # print(requests.get('http://127.0.0.1:5000/news').text)
 
