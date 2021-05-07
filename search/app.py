@@ -1,20 +1,25 @@
+import json
+
 from search import app, app_search
 from flask import request
 
 
-def to_dict(search_resp):
-    slots = ('id', 'content', 'time', 'link', 'tags', 'source')
+def to_dict(result):
+    slots = ('id', 'text', 'time', 'link', 'tags', 'source')
     res = dict()
     for slot in slots:
-        res[slot] = search_resp[slot]['raw']
+        res[slot] = result[slot]['raw']
     return res
 
 
-@app.route('/search', methods=['POST'])
+def response_to_list(response):
+    return list(map(lambda result: to_dict(result), response.get('results', [])))
+
+
+@app.route('/search', methods=['GET'])
 def search():
+    limit = request.args.get('limit', default=1, type=int)
     data = request.get_json()
-    app.logger.critical(data)
-    resp = app_search.search(engine_name="finews-main", body={"query": data})
-    app.logger.critical(resp)
-    return "Response received"
+    search_resp = app_search.search(engine_name="finews-main", body={"query": data})
+    return json.dumps(response_to_list(search_resp)[:limit])
 

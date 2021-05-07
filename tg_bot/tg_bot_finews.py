@@ -72,7 +72,7 @@ def get_limit(message):
                                                                                                       item['time'],
                                                                                                       item['link']),
                          disable_web_page_preview=True)
-        bot.send_message(message.from_user.id, item['content'])
+        bot.send_message(message.from_user.id, item['text'])
         if data.index(item) + 1 != len(data):
             bot.send_message(message.from_user.id, "=================================================")
 
