@@ -1,17 +1,17 @@
 from database import app
 import requests
 from flask import request
-from filter.ticker_parser import TickerParser
+from filter.tags_parser import TagsParser
 
 DATABASE_URI = "http://127.0.0.1:5000"
 
 
 @app.route('/', methods=['POST'])
 def parse_news():
-    tp = TickerParser()
+    tp = TagsParser()
     data = request.get_json()
     for news in data:
-        tickers = tp.find_tickers(news["text"])
+        tickers = tp.find_tags(news["text"])
         news["tags"] = tickers
     requests.post(DATABASE_URI + '/news', json=data)
     return "OK\n"
