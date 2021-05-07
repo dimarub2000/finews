@@ -9,7 +9,7 @@ class MessageBuilder(object):
         return text
 
     def __add_timestamp(self, text, timestamp) -> str:
-        text += "".join(["\n", self.timestamp_format.format(timestamp)])
+        text += self.timestamp_format.format(timestamp)]
         return text
 
     def build_message(self, data) -> str:
@@ -17,6 +17,7 @@ class MessageBuilder(object):
             message = self.compressor.compress(data["text"])
         else:
             message = data["text"]
+        message += "\n"
         message = self.__add_link(message, data["link"])
         message = self.__add_timestamp(message, data["time"])
         return message
