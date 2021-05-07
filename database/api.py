@@ -7,24 +7,24 @@ from database import app, db
 
 class News(db.Model):
     id = db.Column(db.Integer, primary_key=True, unique=True)
-    time = db.Column(db.String(20))
-    link = db.Column(db.String(64))
+    time = db.Column(db.String(100))
+    link = db.Column(db.String(100))
+    text = db.Column(db.String(10000))
     tags = db.relationship('Tags', backref='news')
-    source = db.Column(db.String(24))
-    content = db.Column(db.String(1000))
+    source = db.Column(db.String(100))
 
     def to_dict(self):
         res = dict()
         res['id'] = self.id
-        res['content'] = self.content
         res['time'] = self.time
         res['link'] = self.link
+        res['text'] = self.text
         res['tags'] = [elem.tag for elem in self.tags]
         res['source'] = self.source
         return res
 
     @staticmethod
-    def news_to_dict(news):
+    def news_to_list(news):
         return list(map(lambda x: x.to_dict(), news))
 
 
@@ -42,7 +42,7 @@ def add_news():
     data = request.get_json()
     for news in data:
         cur_news = News(
-            content=news['text'],
+            text=news['text'],
             time=news['time'],
             link=news['link'],
             source=news.get('source')
@@ -58,7 +58,7 @@ def add_news():
 @app.route('/news', methods=['GET'])
 def get_news():
     news = News.query.all()
-    return json.dumps(News.news_to_dict(news))
+    return json.dumps(News.news_to_list(news))
 
 
 @app.route('/top', methods=['GET'])

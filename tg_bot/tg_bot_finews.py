@@ -12,7 +12,7 @@ state = 0
 @bot.message_handler(content_types=['text'])
 def get_text_messages(message):
     global state
-    bot.send_message(144728771, "3% ААААААААААААААААААА")
+
     if message.text == "/commands":
         markup = types.ReplyKeyboardMarkup()
         itembtn_top_news = types.KeyboardButton('top news')
