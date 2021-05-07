@@ -1,5 +1,5 @@
 class MessageBuilder(object):
-    def __init__(self, compressor=None, link_format="Источик: {}\n", timestamp_format="Время Публикации: {}"):
+    def __init__(self, compressor=None, link_format="Источик: {}\n", timestamp_format="Время Публикации: {}\n"):
         self.link_format = link_format
         self.timestamp_format = timestamp_format
         self.compressor = compressor
