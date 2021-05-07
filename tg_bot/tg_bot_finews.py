@@ -78,8 +78,6 @@ def get_limit(message):
                          disable_web_page_preview=True)
         msg = msg_builder.build_message(item)
         bot.send_message(message.from_user.id, msg)
-        if data.index(item) + 1 != len(data):
-            bot.send_message(message.from_user.id, "=================================================")
 
     if len(data) == 0:
         bot.send_message(message.from_user.id, "Ничего не найдено по такому запросу, либо не валидный лимит"
