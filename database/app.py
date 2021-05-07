@@ -71,7 +71,7 @@ def get_top():
     else:
         news = News.query.filter(News.tags.any(tag=tag)).order_by(desc(News.id)).limit(limit).all()
 
-    return json.dumps(News.news_to_dict(news))
+    return json.dumps(News.news_to_list(news))
 
 
 @app.route('/tags', methods=['GET'])

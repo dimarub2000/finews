@@ -69,7 +69,7 @@ def get_html_news(sources: List[lib_parser.Source]) -> List[dict]:
     return collected_news
 
 
-FILTER_SERVICE_URL = 'http://127.0.0.1:4000/'
+FILTER_SERVICE_URL = 'http://127.0.0.1:9001/'
 
 def send(data) -> None:
     for news in data:
