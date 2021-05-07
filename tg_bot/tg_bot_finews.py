@@ -52,6 +52,8 @@ def get_text_messages(message):
         pass
     elif message.text == "search":
         state = 2
+        bot.send_message(message.from_user.id,
+                         "Впиши запрос который тебя интересует")
         bot.register_next_step_handler(message, get_query)
 
     elif state == 0:
@@ -68,36 +70,42 @@ def get_tag(message):
 
 
 def get_query(message):
-    global user_query
+    user_query = message.text
+    bot.send_message(message.from_user.id,
+                     "Напиши максимальное число новостей по этому запросу, которые тебя интересуют")
+    bot.register_next_step_handler(message, get_limit, user_query)
 
 
 def get_limit(message, query=''):
     global user_limit
-    send_messages(message.text)
+    send_messages(message.from_user.id, message.text, query)
 
 
-def send_messages(user_limit, query=''):
+def send_messages(user, user_limit, query=''):
     global state
+    data = []
     if state == 1:
         if user_tag == '-':
-            data = list(requests.get('http://127.0.0.1:5000/top?limit={}'.format(user_limit)).json())
+            data = requests.get('http://127.0.0.1:5000/top?limit={}'.format(user_limit)).json()
         else:
-            data = list(requests.get('http://127.0.0.1:5000/top?tag={}&limit={}'.format(user_tag, user_limit)).json())
-    elif state == 2:
-        data = list(requests.get('http://127.0.0.1:5000/search?limit{}'.format(), json=json.dumps(query)).json())
+            data = requests.get('http://127.0.0.1:5000/top?tag={}&limit={}'.format(user_tag, user_limit)).json()
+    elif state == 2:≠
+        data = requests.get('http://127.0.0.1:9002/search?limit={}'.format(user_limit), json=query).json()
 
     compressor = Compressor()
     msg_builder = MessageBuilder(compressor=compressor)
     for item in data:
         msg = msg_builder.build_message(item)
-        bot.send_message(message.from_user.id, msg, disable_web_page_preview=True)
+        bot.send_message(user, msg, disable_web_page_preview=True)
 
-    if len(data) == 0:
-        bot.send_message(message.from_user.id, "Ничего не найдено по такому запросу, либо не валидный лимит"
-                                               "(попробуйте любое положительное число), либо нет такого тикера на "
-                                               "данный момен ( "
-                                               "чтобы посмотреть доступные на данный момент тикеры, напиши мне "
-                                               "команду: tickers)")
+    if len(data) == 0 and state == 1:
+        bot.send_message(user, "Ничего не найдено по такому запросу, либо не валидный лимит"
+                                    " (попробуйте любое положительное число), либо нет такого тикера на "
+                                    " данный момен ( "
+                                    " чтобы посмотреть доступные на данный момент тикеры, напиши мне "
+                                    " команду: tickers)")
+    if len(data) == 0 and state == 2:
+        bot.send_message(user, "-")
 
     state = 0
 

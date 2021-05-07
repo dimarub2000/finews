@@ -6,4 +6,6 @@ app = Flask(__name__)
 
 SEARCH_HOST = os.environ['SEARCH_HOST']
 SEARCH_AUTH = os.environ['SEARCH_AUTH']
+app.logger.critical(SEARCH_HOST)
+app.logger.critical(SEARCH_AUTH)
 app_search = AppSearch(SEARCH_HOST, http_auth=SEARCH_AUTH)
