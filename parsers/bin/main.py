@@ -29,7 +29,7 @@ def init_sources() -> List[lib_parser.Source]:
             'html'
         ),
         lib_parser.Source(
-            lib_tg.TgParser('https://t.me/Full_Time_Trading', 1),
+            lib_tg.TgParser('https://t.me/Full_Time_Trading', 20),
             'Full Time Trading',
             None,
             'tg'
