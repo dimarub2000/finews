@@ -1,6 +1,8 @@
 import telebot
 import requests
 from telebot import types
+from msg_builder import MessageBuilder
+from compressor import Compressor
 
 bot = telebot.TeleBot('1581250567:AAHChhfr-OW4e0wj6jm_Bc4OmJNVHVm9Vzo')
 
@@ -84,19 +86,11 @@ def send_messages(user_limit, query=''):
     elif state == 2:
         data = list(requests.get('http://127.0.0.1:5000/search?limit{}'.format(), json=json.dumps(query)).json())
 
+    compressor = Compressor()
+    msg_builder = MessageBuilder(compressor=compressor)
     for item in data:
-        if (len(item['tags'])):
-            bot.send_message(message.from_user.id, "Новость по компании: {},"
-                                               " время публикации: {}, ссылка на источник: {}".format(item['tags'],
-                                                                                                      item['time'],
-                                                                                                      item['link']),
-                            disable_web_page_preview=True)
-        else:
-            bot.send_message(message.from_user.id, "время публикации: {}, "
-                                                    "ссылка на источник: {}".format(item['time'],
-                                                                                    item['link']),
-                            disable_web_page_preview=True)
-        bot.send_message(message.from_user.id, item['text'], disable_web_page_preview=True)
+        msg = msg_builder.build_message(item)
+        bot.send_message(message.from_user.id, msg, disable_web_page_preview=True)
 
     if len(data) == 0:
         bot.send_message(message.from_user.id, "Ничего не найдено по такому запросу, либо не валидный лимит"
