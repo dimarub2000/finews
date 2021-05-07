@@ -34,18 +34,18 @@ def init_sources() -> List[lib_parser.Source]:
             None,
             'tg'
         ),
-        lib_parser.Source(
-            lib_tg.TgParser('https://t.me/stock_and_news', 1),
-            'Financial Times',
-            None,
-            'tg'
-        ),
-        lib_parser.Source(
-            lib_tg.TgParser('https://t.me/mtwits', 1),
-            'Market Twits',
-            None,
-            'tg'
-        ),
+        # lib_parser.Source(
+        #     lib_tg.TgParser('https://t.me/stock_and_news', 1),
+        #     'Financial Times',
+        #     None,
+        #     'tg'
+        # ),
+        # lib_parser.Source(
+        #     lib_tg.TgParser('https://t.me/mtwits', 1),
+        #     'Market Twits',
+        #     None,
+        #     'tg'
+        # ),
     ]
     return sources
 

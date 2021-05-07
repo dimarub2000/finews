@@ -1,4 +1,5 @@
-database/news.db
-filter/data.csv
-filter/Untitled.ipynb
+*.db
+*.csv
+*.ipynb
+*.session
 

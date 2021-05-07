@@ -1,0 +1,2 @@
+ * Running on http://127.0.0.1:5000/ (Press CTRL+C to quit)
+127.0.0.1 - - [07/May/2021 19:45:52] "[37mPOST /news HTTP/1.1[0m" 200 -
