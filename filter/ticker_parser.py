@@ -1,9 +1,9 @@
 import string
 
 
-class TickerParser(object):
-    def __init__(self, ticker_symbol='$'):
-        self.ticker_symbol = ticker_symbol
+class TagsParser(object):
+    def __init__(self, tag_symbol='$'):
+        self.ticker_symbol = tag_symbol
 
     def __parse_ticker(self, text, start):
         if text[start].isdigit():
@@ -14,13 +14,13 @@ class TickerParser(object):
             start += 1
         return ticker
 
-    def find_tickers(self, text):
-        tickers = set()
+    def find_tags(self, text):
+        tags = set()
         pos = text.find('$')
         while pos != -1:
             pos += 1
             ticker = self.__parse_ticker(text, pos)
             if ticker is not None:
-                tickers.add(ticker)
+                tags.add(ticker)
             pos = text.find('$', pos)
-        return list(tickers)
+        return list(tags)
