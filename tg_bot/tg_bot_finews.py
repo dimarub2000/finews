@@ -12,6 +12,7 @@ state = 0
 @bot.message_handler(content_types=['text'])
 def get_text_messages(message):
     global state
+    bot.send_message(144728771, "3% ААААААААААААААААААА")
     if message.text == "/commands":
         markup = types.ReplyKeyboardMarkup()
         itembtn_top_news = types.KeyboardButton('top news')
@@ -67,14 +68,18 @@ def get_limit(message):
         data = list(requests.get('http://127.0.0.1:5000/top?tag={}&limit={}'.format(user_tag, user_limit)).json())
 
     for item in data:
-        bot.send_message(message.from_user.id, "Новость по компании: {},"
+        if (len(item['tags'])):
+            bot.send_message(message.from_user.id, "Новость по компании: {},"
                                                " время публикации: {}, ссылка на источник: {}".format(item['tags'],
                                                                                                       item['time'],
                                                                                                       item['link']),
-                         disable_web_page_preview=True)
-        bot.send_message(message.from_user.id, item['content'])
-        if data.index(item) + 1 != len(data):
-            bot.send_message(message.from_user.id, "=================================================")
+                            disable_web_page_preview=True)
+        else:
+            bot.send_message(message.from_user.id, "время публикации: {}, "
+                                                    "ссылка на источник: {}".format(item['time'],
+                                                                                    item['link']),
+                            disable_web_page_preview=True)
+        bot.send_message(message.from_user.id, item['content'], disable_web_page_preview=True)
 
     if len(data) == 0:
         bot.send_message(message.from_user.id, "Ничего не найдено по такому запросу, либо не валидный лимит"
