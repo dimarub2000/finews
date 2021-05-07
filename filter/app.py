@@ -1,4 +1,4 @@
-from database import app
+from filter import app
 import requests
 from flask import request
 from filter.tags_parser import TagsParser
