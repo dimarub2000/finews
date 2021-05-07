@@ -64,7 +64,7 @@ def get_news():
 @app.route('/top', methods=['GET'])
 def get_top():
     tag = request.args.get('tag')
-    limit = request.args.get('limit', default=1, type=int)
+    limit = request.args.get('limit', default=0, type=int)
     if tag is None:
         news = News.query.order_by(desc(News.id)).limit(limit).all()
     else:

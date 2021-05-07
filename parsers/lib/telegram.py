@@ -25,14 +25,6 @@ class TgParser(lib_parser.Parser):
     async def process(self):
         await self.client.start()
 
-        # Ensure you're authorized
-        if not await self.client.is_user_authorized():
-            await self.client.send_code_request(self.phone)
-            try:
-                await self.client.sign_in(self.phone, input('Enter the code from telegram message: '))
-            except SessionPasswordNeededError:
-                await self.client.sign_in(password=input('Password: '))
-
         if self.url.isdigit():
             entity = PeerChannel(int(self.url))
         else:
@@ -71,9 +63,6 @@ class TgParser(lib_parser.Parser):
 
     def get_data(self):
         with self.client:
-            print("here")
             ans_message = self.client.loop.run_until_complete(self.process())
 
         return json.dumps(ans_message)
-
-
