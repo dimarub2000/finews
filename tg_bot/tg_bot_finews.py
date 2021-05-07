@@ -1,8 +1,8 @@
 import telebot
 import requests
 from telebot import types
-from msg_builder import MessageBuilder
-from compressor import Compressor
+from tg_bot.msg_builder import MessageBuilder
+from tg_bot.compressor import Compressor
 
 bot = telebot.TeleBot('1581250567:AAHChhfr-OW4e0wj6jm_Bc4OmJNVHVm9Vzo')
 
@@ -89,7 +89,7 @@ def send_messages(user, user_limit, query=''):
             data = requests.get('http://127.0.0.1:5000/top?limit={}'.format(user_limit)).json()
         else:
             data = requests.get('http://127.0.0.1:5000/top?tag={}&limit={}'.format(user_tag, user_limit)).json()
-    elif state == 2:≠
+    elif state == 2:
         data = requests.get('http://127.0.0.1:9002/search?limit={}'.format(user_limit), json=query).json()
 
     compressor = Compressor()
@@ -100,15 +100,14 @@ def send_messages(user, user_limit, query=''):
 
     if len(data) == 0 and state == 1:
         bot.send_message(user, "Ничего не найдено по такому запросу, либо не валидный лимит"
-                                    " (попробуйте любое положительное число), либо нет такого тикера на "
-                                    " данный момен ( "
-                                    " чтобы посмотреть доступные на данный момент тикеры, напиши мне "
-                                    " команду: tickers)")
+                               " (попробуйте любое положительное число), либо нет такого тикера на "
+                               " данный момен ( "
+                               " чтобы посмотреть доступные на данный момент тикеры, напиши мне "
+                               " команду: tickers)")
     if len(data) == 0 and state == 2:
         bot.send_message(user, "-")
 
     state = 0
-
 
 
 bot.polling(none_stop=True, interval=0)
