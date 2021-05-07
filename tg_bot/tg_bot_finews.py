@@ -18,36 +18,38 @@ def get_text_messages(message):
 
     if message.text == "/commands":
         markup = types.ReplyKeyboardMarkup()
-        itembtn_top_news = types.KeyboardButton('top news')
-        itembtn_ticker = types.KeyboardButton('tickers')
+        itembtn_top_news = types.KeyboardButton('news by ticker')
+        itembtn_recent_news = types.KeyboardButton('recent news')
         itembtn_subscribe = types.KeyboardButton('subscribe')
         itembtn_search = types.KeyboardButton('search')
-        markup.row(itembtn_top_news, itembtn_ticker)
+        markup.row(itembtn_top_news, itembtn_recent_news)
         markup.row(itembtn_subscribe, itembtn_search)
         bot.send_message(message.from_user.id, "Выбери одну из команд на панели ниже", reply_markup=markup)
     elif message.text == "/help":
         bot.send_message(message.from_user.id,
                          "Привет! Напиши '/commands' и тебе выведутся все доступные на данный момент функции данного "
                          "бота.")
-    elif message.text == "top news":
+    elif message.text == "news by ticker":
         state = 1
+        markup = types.ReplyKeyboardMarkup()
+        itembtn_tsla = types.KeyboardButton('$TSLA')
+        itembtn_googl = types.KeyboardButton('$GOOGL')
+        itembtn_wmt = types.KeyboardButton('$WMT')
+        itembtn_tickers = types.KeyboardButton('all tickers')
+        markup.row(itembtn_tsla, itembtn_googl)
+        markup.row(itembtn_wmt, itembtn_tickers)
         bot.send_message(message.from_user.id,
-                         "Впиши тикер компании которая тебя интересует (если интересуют новости по всем компаниям "
-                         "сразу напиши -).")
+                         "Впиши тикер компании которая тебя интересует или посмотри по каким тикерам сейчас есть "
+                         "новости",
+                         reply_markup=markup)
 
         bot.register_next_step_handler(message, get_tag)
 
-    elif message.text == "tickers":
-        tickers_list = list(map(lambda x: '$' + x, requests.get('http://127.0.0.1:5000/tags').json()))
-        ans = ''
-        first = True
-        for item in tickers_list:
-            if not first:
-                ans += ', '
-            else:
-                first = False
-            ans += item
-        bot.send_message(message.from_user.id, ans)
+    elif message.text == "recent news":
+        state = 3
+        bot.send_message(message.from_user.id,
+                         "Напиши максимальное число последних новостей, которые ты хотел бы увидеть")
+        bot.register_next_step_handler(message, get_limit)
     elif message.text == "subscribe":
         pass
     elif message.text == "search":
@@ -63,10 +65,24 @@ def get_text_messages(message):
 def get_tag(message):
     global user_tag
 
-    user_tag = message.text.replace('$', '').upper()
-    bot.send_message(message.from_user.id,
-                     "Напиши максимальное число последних новостей по этой компании, которые тебя интересуют")
-    bot.register_next_step_handler(message, get_limit)
+    if message.text == "all tickers":
+        tickers_list = list(map(lambda x: '$' + x, requests.get('http://127.0.0.1:5000/tags').json()))
+        ans = ''
+        first = True
+        for item in tickers_list:
+            if not first:
+                ans += ', '
+            else:
+                first = False
+            ans += item
+        bot.send_message(message.from_user.id, ans)
+        bot.register_next_step_handler(message, get_tag)
+
+    else:
+        user_tag = message.text.replace('$', '').upper()
+        bot.send_message(message.from_user.id,
+                         "Напиши максимальное число последних новостей по этой компании, которые тебя интересуют")
+        bot.register_next_step_handler(message, get_limit)
 
 
 def get_query(message):
@@ -85,12 +101,11 @@ def send_messages(user, user_limit, query=''):
     global state
     data = []
     if state == 1:
-        if user_tag == '-':
-            data = requests.get('http://127.0.0.1:5000/top?limit={}'.format(user_limit)).json()
-        else:
-            data = requests.get('http://127.0.0.1:5000/top?tag={}&limit={}'.format(user_tag, user_limit)).json()
+        data = requests.get('http://127.0.0.1:5000/top?tag={}&limit={}'.format(user_tag, user_limit)).json()
     elif state == 2:
         data = requests.get('http://127.0.0.1:9002/search?limit={}'.format(user_limit), json=query).json()
+    elif state == 3:
+        data = requests.get('http://127.0.0.1:5000/top?limit={}'.format(user_limit)).json()
 
     compressor = Compressor()
     msg_builder = MessageBuilder(compressor=compressor)
@@ -107,6 +122,14 @@ def send_messages(user, user_limit, query=''):
     if len(data) == 0 and state == 2:
         bot.send_message(user, "-")
 
+    markup = types.ReplyKeyboardMarkup()
+    itembtn_top_news = types.KeyboardButton('news by ticker')
+    itembtn_recent_news = types.KeyboardButton('recent news')
+    itembtn_subscribe = types.KeyboardButton('subscribe')
+    itembtn_search = types.KeyboardButton('search')
+    markup.row(itembtn_top_news, itembtn_recent_news)
+    markup.row(itembtn_subscribe, itembtn_search)
+    bot.send_message(user, "Могу я еще чем-то помочь?", reply_markup=markup)
     state = 0
 
 
