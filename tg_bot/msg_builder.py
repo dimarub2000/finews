@@ -9,7 +9,7 @@ class MessageBuilder(object):
         return text
 
     def __add_timestamp(self, text, timestamp) -> str:
-        text += self.timestamp_format.format(timestamp)]
+        text += self.timestamp_format.format(timestamp)
         return text
 
     def build_message(self, data) -> str:
