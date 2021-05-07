@@ -1,4 +1,5 @@
 import json
+import requests
 
 from flask import request
 from sqlalchemy import desc
@@ -40,6 +41,7 @@ db.create_all()
 @app.route('/news', methods=['POST'])
 def add_news():
     data = request.get_json()
+    requests.post('http://127.0.0.1:9002/index', json=data)
     for news in data:
         cur_news = News(
             text=news['text'],

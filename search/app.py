@@ -23,3 +23,13 @@ def search():
     search_resp = app_search.search(engine_name="finews-main", body={"query": data})
     return json.dumps(response_to_list(search_resp)[:limit])
 
+
+@app.route('/index', methods=['POST'])
+def index():
+    data = request.get_json()
+    app_search.index_documents(engine_name="finews-main", documents=data)
+    return "Indexed to Elasticsearch {} documents".format(len(data))
+
+
+
+
