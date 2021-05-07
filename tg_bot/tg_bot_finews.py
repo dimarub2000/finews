@@ -6,6 +6,7 @@ bot = telebot.TeleBot('1581250567:AAHChhfr-OW4e0wj6jm_Bc4OmJNVHVm9Vzo')
 
 user_tag = ''
 user_limit = ''
+user_query = ''
 state = 0
 
 
@@ -18,8 +19,9 @@ def get_text_messages(message):
         itembtn_top_news = types.KeyboardButton('top news')
         itembtn_ticker = types.KeyboardButton('tickers')
         itembtn_subscribe = types.KeyboardButton('subscribe')
+        itembtn_search = types.KeyboardButton('search')
         markup.row(itembtn_top_news, itembtn_ticker)
-        markup.row(itembtn_subscribe)
+        markup.row(itembtn_subscribe, itembtn_search)
         bot.send_message(message.from_user.id, "Выбери одну из команд на панели ниже", reply_markup=markup)
     elif message.text == "/help":
         bot.send_message(message.from_user.id,
@@ -46,6 +48,10 @@ def get_text_messages(message):
         bot.send_message(message.from_user.id, ans)
     elif message.text == "subscribe":
         pass
+    elif message.text == "search":
+        state = 2
+        bot.register_next_step_handler(message, get_query)
+
     elif state == 0:
         bot.send_message(message.from_user.id, "Я тебя не понимаю. Напиши '/help'.")
 
@@ -59,13 +65,24 @@ def get_tag(message):
     bot.register_next_step_handler(message, get_limit)
 
 
-def get_limit(message):
-    global user_limit, state
-    user_limit = message.text
-    if user_tag == '-':
-        data = list(requests.get('http://127.0.0.1:5000/top?limit={}'.format(user_limit)).json())
-    else:
-        data = list(requests.get('http://127.0.0.1:5000/top?tag={}&limit={}'.format(user_tag, user_limit)).json())
+def get_query(message):
+    global user_query
+
+
+def get_limit(message, query=''):
+    global user_limit
+    send_messages(message.text)
+
+
+def send_messages(user_limit, query=''):
+    global state
+    if state == 1:
+        if user_tag == '-':
+            data = list(requests.get('http://127.0.0.1:5000/top?limit={}'.format(user_limit)).json())
+        else:
+            data = list(requests.get('http://127.0.0.1:5000/top?tag={}&limit={}'.format(user_tag, user_limit)).json())
+    elif state == 2:
+        data = list(requests.get('http://127.0.0.1:5000/search?limit{}'.format(), json=json.dumps(query)).json())
 
     for item in data:
         if (len(item['tags'])):
@@ -79,7 +96,7 @@ def get_limit(message):
                                                     "ссылка на источник: {}".format(item['time'],
                                                                                     item['link']),
                             disable_web_page_preview=True)
-        bot.send_message(message.from_user.id, item['content'], disable_web_page_preview=True)
+        bot.send_message(message.from_user.id, item['text'], disable_web_page_preview=True)
 
     if len(data) == 0:
         bot.send_message(message.from_user.id, "Ничего не найдено по такому запросу, либо не валидный лимит"
@@ -89,6 +106,7 @@ def get_limit(message):
                                                "команду: tickers)")
 
     state = 0
+
 
 
 bot.polling(none_stop=True, interval=0)
