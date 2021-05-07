@@ -1,6 +1,8 @@
 import telebot
 import requests
 from telebot import types
+from tg_bot.msg_builder import MessageBuilder
+from tg_bot.compressor import Compressor
 
 bot = telebot.TeleBot('1581250567:AAHChhfr-OW4e0wj6jm_Bc4OmJNVHVm9Vzo')
 
@@ -66,13 +68,16 @@ def get_limit(message):
     else:
         data = list(requests.get('http://127.0.0.1:5000/top?tag={}&limit={}'.format(user_tag, user_limit)).json())
 
+    compressor = Compressor()
+    msg_builder = MessageBuilder(compressor=compressor)
     for item in data:
         bot.send_message(message.from_user.id, "Новость по компании: {},"
                                                " время публикации: {}, ссылка на источник: {}".format(item['tags'],
                                                                                                       item['time'],
                                                                                                       item['link']),
                          disable_web_page_preview=True)
-        bot.send_message(message.from_user.id, item['text'])
+        msg = msg_builder.build_message(item)
+        bot.send_message(message.from_user.id, msg)
         if data.index(item) + 1 != len(data):
             bot.send_message(message.from_user.id, "=================================================")
 
