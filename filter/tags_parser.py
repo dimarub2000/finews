@@ -1,11 +1,9 @@
-import string
-
-
 class TagsParser(object):
     def __init__(self, tag_symbol='$'):
         self.tag_symbol = tag_symbol
 
-    def __parse_tag(self, text, start):
+    @staticmethod
+    def __parse_tag(text, start):
         ticker = ""
         while start != len(text) and text[start].isalpha():
             ticker += text[start]
