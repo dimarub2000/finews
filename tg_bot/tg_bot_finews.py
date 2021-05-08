@@ -3,41 +3,32 @@ import requests
 from telebot import types
 from tg_bot.msg_builder import MessageBuilder
 from tg_bot.compressor import Compressor
+from tg_bot.markup_builder import MarkupBuilder
 
 bot = telebot.TeleBot('1581250567:AAHChhfr-OW4e0wj6jm_Bc4OmJNVHVm9Vzo')
 
 state = 0
 
-def markup_maker(user_id, text, buttons):
-    markup = types.ReplyKeyboardMarkup()
-    itembtns = []
-    for button in buttons:
-        itembtns.append(types.KeyboardButton(button))
-
-    for i in range(0, len(itembtns), 2):
-        if i + 1 < len(itembtns):
-            markup.row(itembtns[i], itembtns[i+1])
-        else:
-            markup.row(itembtns[i])
-
-    bot.send_message(user_id, text, reply_markup=markup)
 
 @bot.message_handler(content_types=['text'])
 def get_text_messages(message):
     global state
 
+    markup_builder = MarkupBuilder()
+
     if message.text == "/commands":
-        markup_maker(message.from_user.id, "Выбери одну из команд на панели ниже",
-                            ['news by ticker', 'recent news', 'subscribe','search'])
+        markup = markup_builder.build_markup(['news by ticker', 'recent news', 'subscribe', 'search'])
+        bot.send_message(message.from_user.id, "Выбери одну из команд на панели ниже", reply_markup=markup)
     elif message.text == "/help":
         bot.send_message(message.from_user.id,
                          "Привет! Напиши '/commands' и тебе выведутся все доступные на данный момент функции данного "
                          "бота.")
     elif message.text == "news by ticker":
         state = 1
-        markup_maker(message.from_user.id, "Впиши тикер компании, которая тебя интересует"
-                        " или посмотри по каким тикерам сейчас есть новости",
-                        ['$TSLA', '$GOOGL', '$WMT', 'all tickers'])
+        markup = markup_builder.build_markup(['$TSLA', '$GOOGL', '$WMT', 'all tickers'])
+        bot.send_message(message.from_user.id, "Впиши тикер компании, которая тебя интересует"
+                                               " или посмотри по каким тикерам сейчас есть новости",
+                         reply_markup=markup)
 
         bot.register_next_step_handler(message, get_tag)
 
@@ -115,8 +106,9 @@ def send_messages(user, user_limit, query='', user_tag=''):
     if len(data) == 0 and state == 2:
         bot.send_message(user, "-")
 
-    markup_maker(user, "Могу я еще чем-то помочь?",
-                ['news by ticker', 'recent news', 'subscribe','search'])
+    markup_builder = MarkupBuilder()
+    markup = markup_builder.build_markup(['news by ticker', 'recent news', 'subscribe', 'search'])
+    bot.send_message(user, "Могу я еще чем-то помочь?", reply_markup=markup)
     state = 0
 
 
