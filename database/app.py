@@ -1,5 +1,4 @@
 import json
-import requests
 
 from flask import request
 from sqlalchemy import desc
@@ -31,8 +30,14 @@ class News(db.Model):
 
 class Tags(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    tag = db.Column(db.String(12), nullable=True)
+    tag = db.Column(db.String(16), nullable=True)
     news_id = db.Column(db.Integer, db.ForeignKey('news.id'), nullable=False)
+
+
+class Subscriptions(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    tag = db.Column(db.String(16), nullable=True)
+    user_id = db.Column(db.String(100))
 
 
 db.create_all()
@@ -41,7 +46,6 @@ db.create_all()
 @app.route('/news', methods=['POST'])
 def add_news():
     data = request.get_json()
-    requests.post('http://127.0.0.1:9002/index', json=data)
     for news in data:
         cur_news = News(
             text=news['text'],
@@ -80,6 +84,34 @@ def get_top():
 def get_tags():
     tags = db.session.query(Tags.tag).order_by(Tags.tag).distinct().all()
     return json.dumps(list(map(lambda x: x.tag, tags)))
+
+
+@app.route('/subscribe', methods=['POST'])
+def subscribe():
+    data = request.get_json()
+    subscription = Subscriptions.query.filter_by(user_id=data['user_id'], tag=data['tag']).first()
+    app.logger.critical(subscription)
+    if subscription is not None:
+        return "{} already subscribed on {}".format(data['user_id'], data['tag'])
+
+    db.session.add(Subscriptions(
+        user_id=data['user_id'],
+        tag=data['tag']
+    ))
+    db.session.commit()
+    return "{} subscribed on {}".format(data['user_id'], data['tag'])
+
+
+@app.route('/unsubscribe', methods=['DELETE'])
+def unsubscribe():
+    data = request.get_json()
+    subscription = Subscriptions.query.filter_by(user_id=data['user_id'], tag=data['tag']).first()
+    if subscription is None:
+        return "{} is not subscribed on {}".format(data['user_id'], data['tag'])
+
+    db.session.delete(subscription)
+    db.session.commit()
+    return "{} unsubscribed from {}".format(data['user_id'], data['tag'])
 
 
 if __name__ == "__main__":
