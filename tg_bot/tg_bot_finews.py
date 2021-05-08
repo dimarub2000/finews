@@ -6,42 +6,38 @@ from tg_bot.compressor import Compressor
 
 bot = telebot.TeleBot('1581250567:AAHChhfr-OW4e0wj6jm_Bc4OmJNVHVm9Vzo')
 
-user_tag = ''
-user_limit = ''
-user_query = ''
 state = 0
 
+def markup_maker(user_id, text, buttons):
+    markup = types.ReplyKeyboardMarkup()
+    itembtns = []
+    for button in buttons:
+        itembtns.append(types.KeyboardButton(button))
+
+    for i in range(0, len(itembtns), 2):
+        if i + 1 < len(itembtns):
+            markup.row(itembtns[i], itembtns[i+1])
+        else:
+            markup.row(itembtns[i])
+
+    bot.send_message(user_id, text, reply_markup=markup)
 
 @bot.message_handler(content_types=['text'])
 def get_text_messages(message):
     global state
 
     if message.text == "/commands":
-        markup = types.ReplyKeyboardMarkup()
-        itembtn_top_news = types.KeyboardButton('news by ticker')
-        itembtn_recent_news = types.KeyboardButton('recent news')
-        itembtn_subscribe = types.KeyboardButton('subscribe')
-        itembtn_search = types.KeyboardButton('search')
-        markup.row(itembtn_top_news, itembtn_recent_news)
-        markup.row(itembtn_subscribe, itembtn_search)
-        bot.send_message(message.from_user.id, "Выбери одну из команд на панели ниже", reply_markup=markup)
+        markup_maker(message.from_user.id, "Выбери одну из команд на панели ниже",
+                            ['news by ticker', 'recent news', 'subscribe','search'])
     elif message.text == "/help":
         bot.send_message(message.from_user.id,
                          "Привет! Напиши '/commands' и тебе выведутся все доступные на данный момент функции данного "
                          "бота.")
     elif message.text == "news by ticker":
         state = 1
-        markup = types.ReplyKeyboardMarkup()
-        itembtn_tsla = types.KeyboardButton('$TSLA')
-        itembtn_googl = types.KeyboardButton('$GOOGL')
-        itembtn_wmt = types.KeyboardButton('$WMT')
-        itembtn_tickers = types.KeyboardButton('all tickers')
-        markup.row(itembtn_tsla, itembtn_googl)
-        markup.row(itembtn_wmt, itembtn_tickers)
-        bot.send_message(message.from_user.id,
-                         "Впиши тикер компании которая тебя интересует или посмотри по каким тикерам сейчас есть "
-                         "новости",
-                         reply_markup=markup)
+        markup_maker(message.from_user.id, "Впиши тикер компании, которая тебя интересует"
+                        " или посмотри по каким тикерам сейчас есть новости",
+                        ['$TSLA', '$GOOGL', '$WMT', 'all tickers'])
 
         bot.register_next_step_handler(message, get_tag)
 
@@ -63,8 +59,6 @@ def get_text_messages(message):
 
 
 def get_tag(message):
-    global user_tag
-
     if message.text == "all tickers":
         tickers_list = list(map(lambda x: '$' + x, requests.get('http://127.0.0.1:5000/tags').json()))
         ans = ''
@@ -82,7 +76,7 @@ def get_tag(message):
         user_tag = message.text.replace('$', '').upper()
         bot.send_message(message.from_user.id,
                          "Напиши максимальное число последних новостей по этой компании, которые тебя интересуют")
-        bot.register_next_step_handler(message, get_limit)
+        bot.register_next_step_handler(message, get_limit, '', user_tag)
 
 
 def get_query(message):
@@ -92,12 +86,11 @@ def get_query(message):
     bot.register_next_step_handler(message, get_limit, user_query)
 
 
-def get_limit(message, query=''):
-    global user_limit
-    send_messages(message.from_user.id, message.text, query)
+def get_limit(message, query='', user_tag=''):
+    send_messages(message.from_user.id, message.text, query, user_tag)
 
 
-def send_messages(user, user_limit, query=''):
+def send_messages(user, user_limit, query='', user_tag=''):
     global state
     data = []
     if state == 1:
@@ -122,14 +115,8 @@ def send_messages(user, user_limit, query=''):
     if len(data) == 0 and state == 2:
         bot.send_message(user, "-")
 
-    markup = types.ReplyKeyboardMarkup()
-    itembtn_top_news = types.KeyboardButton('news by ticker')
-    itembtn_recent_news = types.KeyboardButton('recent news')
-    itembtn_subscribe = types.KeyboardButton('subscribe')
-    itembtn_search = types.KeyboardButton('search')
-    markup.row(itembtn_top_news, itembtn_recent_news)
-    markup.row(itembtn_subscribe, itembtn_search)
-    bot.send_message(user, "Могу я еще чем-то помочь?", reply_markup=markup)
+    markup_maker(user, "Могу я еще чем-то помочь?",
+                ['news by ticker', 'recent news', 'subscribe','search'])
     state = 0
 
 
