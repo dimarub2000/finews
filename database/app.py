@@ -1,6 +1,6 @@
 import json
 
-from flask import request
+from flask import request, Response
 from sqlalchemy import desc
 from database import app, db
 
@@ -92,14 +92,14 @@ def subscribe():
     subscription = Subscriptions.query.filter_by(user_id=data['user_id'], tag=data['tag']).first()
     app.logger.critical(subscription)
     if subscription is not None:
-        return "{} already subscribed on {}".format(data['user_id'], data['tag'])
+        return Response(status=400)
 
     db.session.add(Subscriptions(
         user_id=data['user_id'],
         tag=data['tag']
     ))
     db.session.commit()
-    return "{} subscribed on {}".format(data['user_id'], data['tag'])
+    return Response(status=200)
 
 
 @app.route('/unsubscribe', methods=['DELETE'])
@@ -107,11 +107,18 @@ def unsubscribe():
     data = request.get_json()
     subscription = Subscriptions.query.filter_by(user_id=data['user_id'], tag=data['tag']).first()
     if subscription is None:
-        return "{} is not subscribed on {}".format(data['user_id'], data['tag'])
+        return Response(status=400)
 
     db.session.delete(subscription)
     db.session.commit()
-    return "{} unsubscribed from {}".format(data['user_id'], data['tag'])
+    return Response(status=200)
+
+
+@app.route('/all_subscriptions', methods=['GET'])
+def all_subscriptions():
+    user_id = request.args.get('user_id')
+    tags = db.session.query(Subscriptions.tag).filter_by(user_id=user_id).all()
+    return json.dumps(list(map(lambda x: x.tag, tags)))
 
 
 if __name__ == "__main__":

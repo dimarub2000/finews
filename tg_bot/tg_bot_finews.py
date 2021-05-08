@@ -63,7 +63,7 @@ def get_subscription(message):
 
     elif message.text == "Мои подписки":
         tickers_list = list(map(lambda x: '$' + x,
-                                requests.get('http://127.0.0.1:5000/all_subscribtions?user_id={}'.format(message.from_user.id)).json()))
+                                requests.get('http://127.0.0.1:5000/all_subscriptions?user_id={}'.format(message.from_user.id)).json()))
         tickers = get_all_tickers(tickers_list)
         bot.send_message(message.from_user.id, tickers)
         bot.register_next_step_handler(message, get_subscription)
