@@ -1,6 +1,5 @@
 import telebot
 import requests
-from telebot import types
 from tg_bot.msg_builder import MessageBuilder
 from tg_bot.compressor import Compressor
 from tg_bot.markup_builder import MarkupBuilder
@@ -17,29 +16,33 @@ def get_text_messages(message):
     markup_builder = MarkupBuilder()
 
     if message.text == "/commands":
-        markup = markup_builder.build_markup(['news by ticker', 'recent news', 'subscribe', 'search'])
+        markup = markup_builder.build_markup(['Новости по тикеру компании', 'Последние новости', 'Подписки', 'Поиск'])
         bot.send_message(message.from_user.id, "Выбери одну из команд на панели ниже", reply_markup=markup)
     elif message.text == "/help":
         bot.send_message(message.from_user.id,
                          "Привет! Напиши '/commands' и тебе выведутся все доступные на данный момент функции данного "
                          "бота.")
-    elif message.text == "news by ticker":
+    elif message.text == "Новости по тикеру компании":
         state = 1
-        markup = markup_builder.build_markup(['$TSLA', '$GOOGL', '$WMT', 'all tickers'])
+        markup = markup_builder.build_markup(['$TSLA', '$GOOGL', '$WMT', 'все тикеры'])
         bot.send_message(message.from_user.id, "Впиши тикер компании, которая тебя интересует"
                                                " или посмотри по каким тикерам сейчас есть новости",
                          reply_markup=markup)
 
         bot.register_next_step_handler(message, get_tag)
-
-    elif message.text == "recent news":
+    elif message.text == "Последние новости":
         state = 3
         bot.send_message(message.from_user.id,
                          "Напиши максимальное число последних новостей, которые ты хотел бы увидеть")
         bot.register_next_step_handler(message, get_limit)
-    elif message.text == "subscribe":
-        pass
-    elif message.text == "search":
+    elif message.text == "Подписки":
+        state = 4
+        markup = markup_builder.build_markup(['Подписаться', 'Отписаться', 'Мои подписки', "Выйти"])
+        bot.send_message(message.from_user.id,
+                         "С помощью кнопок ты можешь легко управлять своими подписками", reply_markup=markup)
+        bot.register_next_step_handler(message, get_subscription)
+
+    elif message.text == "Поиск":
         state = 2
         bot.send_message(message.from_user.id,
                          "Впиши запрос который тебя интересует")
@@ -49,18 +52,64 @@ def get_text_messages(message):
         bot.send_message(message.from_user.id, "Я тебя не понимаю. Напиши '/help'.")
 
 
+def get_subscription(message):
+    if message.text == "Подписаться":
+        bot.send_message(message.from_user.id, "Впиши тикер компании, которая тебя интересует"
+                                               " или посмотри по каким тикерам сейчас есть новости")
+        bot.register_next_step_handler(message, subscribe)
+    elif message.text == "Отписатсья":
+        bot.send_message(message.from_user.id, "Впиши тикер компании, от новостей который ты хотел бы отписаться")
+        bot.register_next_step_handler(message, subscribe)
+
+    elif message.text == "Мои подписки":
+        tickers_list = list(map(lambda x: '$' + x,
+                                requests.get('http://127.0.0.1:5000/all_subscribtions?user_id={}'.format(message.from_user.id)).json()))
+        tickers = get_all_tickers(tickers_list)
+        bot.send_message(message.from_user.id, tickers)
+        bot.register_next_step_handler(message, get_subscription)
+    else:
+        main_menu_message(message.from_user.id)
+
+
+def main_menu_message(user):
+    global state
+    markup_builder = MarkupBuilder()
+    markup = markup_builder.build_markup(['Новости по тикеру компании', 'Последние новости', 'Подписки', 'Поиск'])
+    bot.send_message(user, "Могу я еще чем-то помочь?", reply_markup=markup)
+    state = 0
+
+
+def subscribe(message):
+    user_tag = message.text.replace('$', '').upper()
+    requests.post('http://127.0.0.1:5000/subscribe', json={"user_id": message.from_user.id, "tag": user_tag})
+    bot.send_message(message.from_user.id, "Вы подписались на новости компании {}".format(user_tag))
+    main_menu_message(message.from_user.id)
+
+
+def unsubscribe(message):
+    user_tag = message.text.replace('$', '').upper()
+    requests.delete('http://127.0.0.1:5000/unsubscribe', json={"user_id": message.from_user.id, "tag": user_tag})
+    bot.send_message(message.from_user.id, "Вы Отписались от новостей компании {}".format(user_tag))
+    main_menu_message(message.from_user.id)
+
+
+def get_all_tickers(tickers_list):
+    ans = ''
+    first = True
+    for item in tickers_list:
+        if not first:
+            ans += ', '
+        else:
+            first = False
+        ans += item
+    return ans
+
+
 def get_tag(message):
-    if message.text == "all tickers":
+    if message.text == "все тикеры":
         tickers_list = list(map(lambda x: '$' + x, requests.get('http://127.0.0.1:5000/tags').json()))
-        ans = ''
-        first = True
-        for item in tickers_list:
-            if not first:
-                ans += ', '
-            else:
-                first = False
-            ans += item
-        bot.send_message(message.from_user.id, ans)
+        tickers = get_all_tickers(tickers_list)
+        bot.send_message(message.from_user.id, tickers)
         bot.register_next_step_handler(message, get_tag)
 
     else:
@@ -106,10 +155,8 @@ def send_messages(user, user_limit, query='', user_tag=''):
     if len(data) == 0 and state == 2:
         bot.send_message(user, "-")
 
-    markup_builder = MarkupBuilder()
-    markup = markup_builder.build_markup(['news by ticker', 'recent news', 'subscribe', 'search'])
-    bot.send_message(user, "Могу я еще чем-то помочь?", reply_markup=markup)
-    state = 0
+    main_menu_message(user)
 
 
-bot.polling(none_stop=True, interval=0)
+if __name__ == "__main__":
+    bot.polling(none_stop=True, interval=0)
