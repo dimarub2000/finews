@@ -49,7 +49,6 @@ class TgParser(lib_parser.Parser):
 
         for message in messages:
             msg = message.to_dict()
-            print(msg)
             msg = {
                 'text': msg['message'],
                 'time': msg['date'].timestamp(),
