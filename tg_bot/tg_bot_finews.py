@@ -9,6 +9,11 @@ bot = telebot.TeleBot('1581250567:AAHChhfr-OW4e0wj6jm_Bc4OmJNVHVm9Vzo')
 state = 0
 
 
+@bot.message_handler(commands=['help'])
+def help_handler():
+    pass
+
+
 @bot.message_handler(content_types=['text'])
 def get_text_messages(message):
     global state
@@ -57,16 +62,19 @@ def get_subscription(message):
         bot.send_message(message.from_user.id, "Впиши тикер компании, которая тебя интересует"
                                                " или посмотри по каким тикерам сейчас есть новости")
         bot.register_next_step_handler(message, subscribe)
-    elif message.text == "Отписатсья":
+    elif message.text == "Отписаться":
         bot.send_message(message.from_user.id, "Впиши тикер компании, от новостей который ты хотел бы отписаться")
-        bot.register_next_step_handler(message, subscribe)
+        bot.register_next_step_handler(message, unsubscribe)
 
     elif message.text == "Мои подписки":
         tickers_list = list(
             map(lambda x: '$' + x,
                 requests.get('http://127.0.0.1:5000/all_subscriptions?user_id={}'.format(message.from_user.id)).json()))
-        tickers = get_all_tickers(tickers_list)
-        bot.send_message(message.from_user.id, tickers)
+        if len(tickers_list) == 0:
+            bot.send_message(message.from_user.id, "На данный момент у тебя нет подписок")
+        else:
+            tickers = get_all_tickers(tickers_list)
+            bot.send_message(message.from_user.id, tickers)
         bot.register_next_step_handler(message, get_subscription)
     else:
         main_menu_message(message.from_user.id)
@@ -84,14 +92,14 @@ def subscribe(message):
     user_tag = message.text.replace('$', '').upper()
     requests.post('http://127.0.0.1:5000/subscribe', json={"user_id": message.from_user.id, "tag": user_tag})
     bot.send_message(message.from_user.id, "Вы подписались на новости компании {}".format(user_tag))
-    main_menu_message(message.from_user.id)
+    bot.register_next_step_handler(message, get_subscription)
 
 
 def unsubscribe(message):
     user_tag = message.text.replace('$', '').upper()
     requests.delete('http://127.0.0.1:5000/unsubscribe', json={"user_id": message.from_user.id, "tag": user_tag})
-    bot.send_message(message.from_user.id, "Вы Отписались от новостей компании {}".format(user_tag))
-    main_menu_message(message.from_user.id)
+    bot.send_message(message.from_user.id, "Вы отписались от новостей компании {}".format(user_tag))
+    bot.register_next_step_handler(message, get_subscription)
 
 
 def get_all_tickers(tickers_list):
