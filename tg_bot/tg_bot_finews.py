@@ -5,21 +5,14 @@ import requests
 from tg_bot.msg_builder import MessageBuilder
 from tg_bot.compressor import Compressor
 from tg_bot.markup_builder import MarkupBuilder
+from tg_bot.news_feed_handler import NewsFeedHandler
 
 TG_BOT_TOKEN = os.environ['TG_BOT_TOKEN']
 bot = telebot.TeleBot(TG_BOT_TOKEN)
 
-state = 0
-
-
-@bot.message_handler(commands=['help'])
-def help_handler():
-    pass
-
 
 @bot.message_handler(content_types=['text'])
 def get_text_messages(message):
-    global state
 
     markup_builder = MarkupBuilder()
 
@@ -31,7 +24,6 @@ def get_text_messages(message):
                          "Привет! Напиши '/commands' и тебе выведутся все доступные на данный момент функции данного "
                          "бота.")
     elif message.text == "Новости по тикеру компании":
-        state = 1
         markup = markup_builder.build_markup(['$TSLA', '$GOOGL', '$WMT', 'все тикеры'])
         bot.send_message(message.from_user.id, "Впиши тикер компании, которая тебя интересует"
                                                " или посмотри по каким тикерам сейчас есть новости",
@@ -39,24 +31,23 @@ def get_text_messages(message):
 
         bot.register_next_step_handler(message, get_tag)
     elif message.text == "Последние новости":
-        state = 3
-        bot.send_message(message.from_user.id,
-                         "Напиши максимальное число последних новостей, которые ты хотел бы увидеть")
-        bot.register_next_step_handler(message, get_limit)
+        data = requests.get('http://127.0.0.1:5000/top?limit={}'.format(30)).json()
+        news_feed_handler = NewsFeedHandler(data=data)
+        news = news_feed_handler.get_new_page()
+        show_news(message, news, news_feed_handler)
+
     elif message.text == "Подписки":
-        state = 4
         markup = markup_builder.build_markup(['Подписаться', 'Отписаться', 'Мои подписки', "Выйти"])
         bot.send_message(message.from_user.id,
                          "С помощью кнопок ты можешь легко управлять своими подписками", reply_markup=markup)
         bot.register_next_step_handler(message, get_subscription)
 
     elif message.text == "Поиск":
-        state = 2
         bot.send_message(message.from_user.id,
                          "Впиши запрос который тебя интересует")
         bot.register_next_step_handler(message, get_query)
 
-    elif state == 0:
+    else:
         bot.send_message(message.from_user.id, "Я тебя не понимаю. Напиши '/help'.")
 
 
@@ -84,11 +75,9 @@ def get_subscription(message):
 
 
 def main_menu_message(user):
-    global state
     markup_builder = MarkupBuilder()
     markup = markup_builder.build_markup(['Новости по тикеру компании', 'Последние новости', 'Подписки', 'Поиск'])
     bot.send_message(user, "Могу я еще чем-то помочь?", reply_markup=markup)
-    state = 0
 
 
 def subscribe(message):
@@ -107,12 +96,9 @@ def unsubscribe(message):
 
 def get_all_tickers(tickers_list):
     ans = ''
-    first = True
     for item in tickers_list:
-        if not first:
+        if ans != '':
             ans += ', '
-        else:
-            first = False
         ans += item
     return ans
 
@@ -126,48 +112,43 @@ def get_tag(message):
 
     else:
         user_tag = message.text.replace('$', '').upper()
-        bot.send_message(message.from_user.id,
-                         "Напиши максимальное число последних новостей по этой компании, которые тебя интересуют")
-        bot.register_next_step_handler(message, get_limit, '', user_tag)
+        data = requests.get('http://127.0.0.1:5000/top?tag={}&limit={}'.format(user_tag, 30)).json()
+        news_feed_handler = NewsFeedHandler(data, 1)
+        news = news_feed_handler.get_new_page()
+        show_news(message, news, news_feed_handler)
 
 
 def get_query(message):
     user_query = message.text
-    bot.send_message(message.from_user.id,
-                     "Напиши максимальное число новостей по этому запросу, которые тебя интересуют")
-    bot.register_next_step_handler(message, get_limit, user_query)
+    data = requests.get('http://127.0.0.1:9002/search?limit={}'.format(30), json=user_query).json()
+    news_feed_handler = NewsFeedHandler(data=data)
+    news = news_feed_handler.get_new_page()
+    show_news(message, news, news_feed_handler)
 
 
-def get_limit(message, query='', user_tag=''):
-    send_messages(message.from_user.id, message.text, query, user_tag)
+def news_feed(message, news_feed_handler):
+    if message.text == "Выйти":
+        main_menu_message(message.from_user.id)
+    elif message.text == "Дальше":
+        news = news_feed_handler.get_new_page()
+        show_news(message, news, news_feed_handler)
 
 
-def send_messages(user, user_limit, query='', user_tag=''):
-    global state
-    data = []
-    if state == 1:
-        data = requests.get('http://127.0.0.1:5000/top?tag={}&limit={}'.format(user_tag, user_limit)).json()
-    elif state == 2:
-        data = requests.get('http://127.0.0.1:9002/search?limit={}'.format(user_limit), json=query).json()
-    elif state == 3:
-        data = requests.get('http://127.0.0.1:5000/top?limit={}'.format(user_limit)).json()
-
+def show_news(message, news, news_feed_handler):
+    if news is None:
+        bot.send_message(message.from_user.id, "По твоему запросу у нас закончились новости!")
+        main_menu_message(message.from_user.id)
+        return
     compressor = Compressor()
     msg_builder = MessageBuilder(compressor=compressor)
-    for item in data:
+    for item in news:
         msg = msg_builder.build_message(item)
-        bot.send_message(user, msg, disable_web_page_preview=True)
+        bot.send_message(message.from_user.id, msg, disable_web_page_preview=True)
 
-    if len(data) == 0 and state == 1:
-        bot.send_message(user, "Ничего не найдено по такому запросу, либо не валидный лимит"
-                               " (попробуйте любое положительное число), либо нет такого тикера на "
-                               " данный момен ( "
-                               " чтобы посмотреть доступные на данный момент тикеры, напиши мне "
-                               " команду: tickers)")
-    if len(data) == 0 and state == 2:
-        bot.send_message(user, "-")
-
-    main_menu_message(user)
+    markup_builder = MarkupBuilder()
+    markup = markup_builder.build_markup(["Дальше", "Выйти"])
+    bot.send_message(message.from_user.id, "Продолжим?", reply_markup=markup)
+    bot.register_next_step_handler(message, news_feed, news_feed_handler)
 
 
 if __name__ == "__main__":
