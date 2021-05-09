@@ -1,7 +1,15 @@
 import json
-
-from search import app, app_search
+import os
+from flask import Flask
+from elastic_enterprise_search import AppSearch
 from flask import request
+
+app = Flask(__name__)
+
+SEARCH_HOST = os.environ['SEARCH_HOST']
+SEARCH_AUTH = os.environ['SEARCH_AUTH']
+
+app_search = AppSearch(SEARCH_HOST, http_auth=SEARCH_AUTH)
 
 
 def to_dict(result):
@@ -31,5 +39,5 @@ def index():
     return "Indexed to Elasticsearch {} documents".format(len(data))
 
 
-
-
+if __name__ == "__main__":
+    app.run(port=9002)

@@ -1,13 +1,17 @@
 import os
 import requests
 
-from filter import app
+from flask import Flask
 from flask import request
 from filter.tags_parser import TagsParser
 from tg_bot.msg_builder import MessageBuilder
+from config.config_parser import FinewsConfigParser
 
-SEARCH_URI = "http://127.0.0.1:9002"
-DATABASE_URI = "http://127.0.0.1:5000"
+app = Flask(__name__)
+
+cfg_parser = FinewsConfigParser()
+SEARCH_URI = cfg_parser.get_service_url('search')
+DATABASE_URI = cfg_parser.get_service_url('database')
 TG_BOT_TOKEN = os.environ['TG_BOT_TOKEN']
 
 

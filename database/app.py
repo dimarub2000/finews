@@ -2,7 +2,12 @@ import json
 
 from flask import request, Response
 from sqlalchemy import desc
-from database import app, db
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+
+app = Flask(__name__)
+app.config.from_pyfile('config.py')
+db = SQLAlchemy(app)
 
 
 class News(db.Model):
@@ -38,9 +43,6 @@ class Subs(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     tag = db.Column(db.String(16), nullable=True)
     user_id = db.Column(db.String(100))
-
-
-db.create_all()
 
 
 @app.route('/news', methods=['POST'])
@@ -129,4 +131,5 @@ def get_subscribers():
 
 
 if __name__ == "__main__":
-    app.run()
+    db.create_all()
+    app.run(port=5000)

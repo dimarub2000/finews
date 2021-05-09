@@ -4,8 +4,12 @@ import requests
 import parsers.lib.parser as lib_parser
 import parsers.lib.web as lib_web
 import parsers.lib.telegram as lib_tg
+from config.config_parser import FinewsConfigParser
 
 from typing import List
+
+cfg_parser = FinewsConfigParser()
+FILTER_SERVICE_URL = cfg_parser.get_service_url('filter')
 
 
 def init_sources() -> List[lib_parser.Source]:
@@ -69,14 +73,11 @@ def get_html_news(sources: List[lib_parser.Source]) -> List[dict]:
     return collected_news
 
 
-FILTER_SERVICE_URL = 'http://127.0.0.1:9001/'
-
 def send(data) -> None:
     for news in data:
         print("%s, %s, %s" % (news['source'], news['time'], news['link']))
     resp = requests.post(FILTER_SERVICE_URL, json=data)
     print(resp)
-    # print(requests.get('http://127.0.0.1:5000/news').text)
 
 
 def main():

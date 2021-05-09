@@ -6,9 +6,15 @@ from tg_bot.msg_builder import MessageBuilder
 from tg_bot.compressor import Compressor
 from tg_bot.markup_builder import MarkupBuilder
 from tg_bot.news_feed_handler import NewsFeedHandler
+from config.config_parser import FinewsConfigParser
 
 TG_BOT_TOKEN = os.environ['TG_BOT_TOKEN']
 bot = telebot.TeleBot(TG_BOT_TOKEN)
+
+cfg_parser = FinewsConfigParser()
+DATABASE_URI = cfg_parser.get_service_url('database')
+SEARCH_URI = cfg_parser.get_service_url('search')
+SERVICE_NAME = 'tg_bot'
 
 
 @bot.message_handler(content_types=['text'])
@@ -31,8 +37,10 @@ def get_text_messages(message):
 
         bot.register_next_step_handler(message, get_tag)
     elif message.text == "Последние новости":
-        data = requests.get('http://127.0.0.1:5000/top?limit={}'.format(30)).json()
-        news_feed_handler = NewsFeedHandler(data=data)
+        limit = cfg_parser.get_service_setting(SERVICE_NAME, 'max_feed_size')
+        page_size = cfg_parser.get_service_setting(SERVICE_NAME, 'page_size')
+        data = requests.get(DATABASE_URI + '/top?limit={}'.format(limit)).json()
+        news_feed_handler = NewsFeedHandler(data=data, page_size=page_size)
         news = news_feed_handler.get_new_page()
         show_news(message, news, news_feed_handler)
 
@@ -70,7 +78,7 @@ def get_subscription(message):
     elif message.text == "Мои подписки":
         tickers_list = list(
             map(lambda x: '$' + x,
-                requests.get('http://127.0.0.1:5000/all_subscriptions?user_id={}'.format(message.from_user.id)).json()))
+                requests.get(DATABASE_URI + '/all_subscriptions?user_id={}'.format(message.from_user.id)).json()))
         if len(tickers_list) == 0:
             bot.send_message(message.from_user.id, "На данный момент у тебя нет подписок")
         else:
@@ -102,7 +110,7 @@ def subscribe(message):
         bot.register_next_step_handler(message, get_subscription)
         return
     user_tag = message.text.replace('$', '').upper()
-    requests.post('http://127.0.0.1:5000/subscribe', json={"user_id": message.from_user.id, "tag": user_tag})
+    requests.post(DATABASE_URI + '/subscribe', json={"user_id": message.from_user.id, "tag": user_tag})
     bot.send_message(message.from_user.id, "Вы подписались на новости компании {}".format(user_tag), reply_markup=markup)
     bot.register_next_step_handler(message, get_subscription)
 
@@ -115,7 +123,7 @@ def unsubscribe(message):
         bot.register_next_step_handler(message, get_subscription)
         return
     user_tag = message.text.replace('$', '').upper()
-    requests.delete('http://127.0.0.1:5000/unsubscribe', json={"user_id": message.from_user.id, "tag": user_tag})
+    requests.delete(DATABASE_URI + '/unsubscribe', json={"user_id": message.from_user.id, "tag": user_tag})
     bot.send_message(message.from_user.id, "Вы отписались от новостей компании {}".format(user_tag), reply_markup=markup)
     bot.register_next_step_handler(message, get_subscription)
 
@@ -131,7 +139,7 @@ def get_all_tickers(tickers_list):
 
 def get_tag(message):
     if message.text == "все тикеры":
-        tickers_list = list(map(lambda x: '$' + x, requests.get('http://127.0.0.1:5000/tags').json()))
+        tickers_list = list(map(lambda x: '$' + x, requests.get(DATABASE_URI + '/tags').json()))
         tickers = get_all_tickers(tickers_list)
         bot.send_message(message.from_user.id, tickers)
         bot.register_next_step_handler(message, get_tag)
@@ -140,8 +148,10 @@ def get_tag(message):
         main_menu_message(message.from_user.id)
     else:
         user_tag = message.text.replace('$', '').upper()
-        data = requests.get('http://127.0.0.1:5000/top?tag={}&limit={}'.format(user_tag, 30)).json()
-        news_feed_handler = NewsFeedHandler(data, 1)
+        limit = cfg_parser.get_service_setting(SERVICE_NAME, 'max_feed_size')
+        page_size = cfg_parser.get_service_setting(SERVICE_NAME, 'page_size')
+        data = requests.get(DATABASE_URI + '/top?tag={}&limit={}'.format(user_tag, limit)).json()
+        news_feed_handler = NewsFeedHandler(data, page_size)
         news = news_feed_handler.get_new_page()
         show_news(message, news, news_feed_handler)
 
@@ -151,8 +161,10 @@ def get_query(message):
         main_menu_message(message.from_user.id)
         return
     user_query = message.text
-    data = requests.get('http://127.0.0.1:9002/search?limit={}'.format(30), json=user_query).json()
-    news_feed_handler = NewsFeedHandler(data=data)
+    limit = cfg_parser.get_service_setting(SERVICE_NAME, 'max_feed_size')
+    page_size = cfg_parser.get_service_setting(SERVICE_NAME, 'page_size')
+    data = requests.get(SEARCH_URI + '/search?limit={}'.format(limit), json=user_query).json()
+    news_feed_handler = NewsFeedHandler(data=data, page_size=page_size)
     news = news_feed_handler.get_new_page()
     show_news(message, news, news_feed_handler)
 

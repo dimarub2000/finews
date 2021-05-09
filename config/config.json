@@ -1,0 +1,22 @@
+{
+    "search":{
+        "addr": "http://127.0.0.1:9002"
+    },
+    "database":{
+        "addr": "http://127.0.0.1:5000"
+    },
+    "filter":{
+        "addr": "http://127.0.0.1:9001"
+    },
+    "tg_bot": {
+        "settings": {
+            "page_size": 3,
+            "max_feed_size": 30
+        }
+    },
+    "parsers": {
+        "settings": {
+            "use_moscow_time": false
+        }
+    }
+}

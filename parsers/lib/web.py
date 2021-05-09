@@ -3,10 +3,12 @@ import json
 import requests
 import dateparser
 import parsers.lib.parser as lib_parser
+from config.config_parser import FinewsConfigParser
 
 from bs4 import BeautifulSoup
 
-ASSUME_WEB_MOSCOW = int(os.environ.get('ASSUME_WEB_MOSCOW', '0'))
+cfg_parser = FinewsConfigParser()
+ASSUME_WEB_MOSCOW = int(cfg_parser.get_service_setting("parsers", "use_moscow_time"))
 
 
 class HtmlParser(lib_parser.Parser):
