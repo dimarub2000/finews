@@ -46,7 +46,10 @@ class FinamParser(HtmlParser):
 class FinamCoreParser(HtmlParser):
     def parse(self, soup):
         text = soup.find('div', class_='handmade mid f-newsitem-text').get_text().strip()
-        time = self.format_time(dateparser.parse(soup.find('div', class_='sm lightgrey mb05 mt15').get_text()[:17]))
+        time = self.format_time(dateparser.parse(
+            soup.find('div', class_='sm lightgrey mb05 mt15').get_text()[:17],
+            settings={'DATE_ORDER': 'DMY'}
+        ))
         return json.dumps({'text': text, 'time': time, 'source': 'Finam', 'link': self.url})
 
 
