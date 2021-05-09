@@ -24,7 +24,7 @@ def get_text_messages(message):
                          "Привет! Напиши '/commands' и тебе выведутся все доступные на данный момент функции данного "
                          "бота.")
     elif message.text == "Новости по тикеру компании":
-        markup = markup_builder.build_markup(['$TSLA', '$GOOGL', '$WMT', 'все тикеры'])
+        markup = markup_builder.build_markup(['$TSLA', '$GOOGL', '$WMT', 'Все тикеры', 'Выйти'])
         bot.send_message(message.from_user.id, "Впиши тикер компании, которая тебя интересует"
                                                " или посмотри по каким тикерам сейчас есть новости",
                          reply_markup=markup)
@@ -43,8 +43,9 @@ def get_text_messages(message):
         bot.register_next_step_handler(message, get_subscription)
 
     elif message.text == "Поиск":
+        markup = markup_builder.build_markup(["Выйти"])
         bot.send_message(message.from_user.id,
-                         "Впиши запрос который тебя интересует")
+                         "Впиши запрос который тебя интересует", reply_markup=markup)
         bot.register_next_step_handler(message, get_query)
 
     else:
@@ -53,11 +54,17 @@ def get_text_messages(message):
 
 def get_subscription(message):
     if message.text == "Подписаться":
+        markup_builder = MarkupBuilder()
+        markup = markup_builder.build_markup(["Назад"])
         bot.send_message(message.from_user.id, "Впиши тикер компании, которая тебя интересует"
-                                               " или посмотри по каким тикерам сейчас есть новости")
+                                               " или посмотри по каким тикерам сейчас есть новости",
+                         reply_markup=markup)
         bot.register_next_step_handler(message, subscribe)
     elif message.text == "Отписаться":
-        bot.send_message(message.from_user.id, "Впиши тикер компании, от новостей который ты хотел бы отписаться")
+        markup_builder = MarkupBuilder()
+        markup = markup_builder.build_markup(["Назад"])
+        bot.send_message(message.from_user.id, "Впиши тикер компании, от новостей который ты хотел бы отписаться",
+                         reply_markup=markup)
         bot.register_next_step_handler(message, unsubscribe)
 
     elif message.text == "Мои подписки":
@@ -80,17 +87,36 @@ def main_menu_message(user):
     bot.send_message(user, "Могу я еще чем-то помочь?", reply_markup=markup)
 
 
+def prev_message(message):
+    markup_builder = MarkupBuilder()
+    markup = markup_builder.build_markup(['Подписаться', 'Отписаться', 'Мои подписки', "Выйти"])
+    bot.send_message(message.from_user.id, "Ты вернулся в меню подписок", reply_markup=markup)
+    bot.register_next_step_handler(message, get_subscription)
+
+
 def subscribe(message):
+    markup_builder = MarkupBuilder()
+    markup = markup_builder.build_markup(['Подписаться', 'Отписаться', 'Мои подписки', "Выйти"])
+    if message.text == "Назад":
+        bot.send_message(message.from_user.id, "Ты вернулся в меню подписок", reply_markup=markup)
+        bot.register_next_step_handler(message, get_subscription)
+        return
     user_tag = message.text.replace('$', '').upper()
     requests.post('http://127.0.0.1:5000/subscribe', json={"user_id": message.from_user.id, "tag": user_tag})
-    bot.send_message(message.from_user.id, "Вы подписались на новости компании {}".format(user_tag))
+    bot.send_message(message.from_user.id, "Вы подписались на новости компании {}".format(user_tag), reply_markup=markup)
     bot.register_next_step_handler(message, get_subscription)
 
 
 def unsubscribe(message):
+    markup_builder = MarkupBuilder()
+    markup = markup_builder.build_markup(['Подписаться', 'Отписаться', 'Мои подписки', "Выйти"])
+    if message.text == "Назад":
+        bot.send_message(message.from_user.id, "Ты вернулся в меню подписок", reply_markup=markup)
+        bot.register_next_step_handler(message, get_subscription)
+        return
     user_tag = message.text.replace('$', '').upper()
     requests.delete('http://127.0.0.1:5000/unsubscribe', json={"user_id": message.from_user.id, "tag": user_tag})
-    bot.send_message(message.from_user.id, "Вы отписались от новостей компании {}".format(user_tag))
+    bot.send_message(message.from_user.id, "Вы отписались от новостей компании {}".format(user_tag), reply_markup=markup)
     bot.register_next_step_handler(message, get_subscription)
 
 
@@ -110,6 +136,8 @@ def get_tag(message):
         bot.send_message(message.from_user.id, tickers)
         bot.register_next_step_handler(message, get_tag)
 
+    elif message.text == "Выйти":
+        main_menu_message(message.from_user.id)
     else:
         user_tag = message.text.replace('$', '').upper()
         data = requests.get('http://127.0.0.1:5000/top?tag={}&limit={}'.format(user_tag, 30)).json()
@@ -119,6 +147,9 @@ def get_tag(message):
 
 
 def get_query(message):
+    if message.text == "Выйти":
+        main_menu_message(message.from_user.id)
+        return
     user_query = message.text
     data = requests.get('http://127.0.0.1:9002/search?limit={}'.format(30), json=user_query).json()
     news_feed_handler = NewsFeedHandler(data=data)
