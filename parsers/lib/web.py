@@ -1,9 +1,12 @@
+import os
 import json
 import requests
 import dateparser
 import parsers.lib.parser as lib_parser
 
 from bs4 import BeautifulSoup
+
+ASSUME_WEB_MOSCOW = int(os.environ.get('ASSUME_WEB_MOSCOW', '0'))
 
 
 class HtmlParser(lib_parser.Parser):
@@ -22,7 +25,7 @@ class HtmlParser(lib_parser.Parser):
 
     @staticmethod
     def format_time(date_data) -> int:
-        return date_data.timestamp()
+        return date_data.timestamp() - 3 * 60 * 60 * ASSUME_WEB_MOSCOW
 
 
 class FinamParser(HtmlParser):

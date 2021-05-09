@@ -27,7 +27,7 @@ def parse_news():
             send_message(subscriber, MessageBuilder().build_message(news))
 
     requests.post(DATABASE_URI + '/news', json=data)
-    # requests.post(SEARCH_URI + '/index', json=data)
+    requests.post(SEARCH_URI + '/index', json=data)
     return "OK\n"
 
 
