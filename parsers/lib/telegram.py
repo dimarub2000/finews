@@ -1,10 +1,8 @@
-import configparser
 import os
 import json
 import parsers.lib.parser as lib_parser
 
 from telethon import TelegramClient
-from telethon.errors import SessionPasswordNeededError
 from telethon.tl.functions.messages import (GetHistoryRequest)
 from telethon.tl.types import PeerChannel
 
@@ -53,7 +51,7 @@ class TgParser(lib_parser.Parser):
             msg = message.to_dict()
             msg = {
                 'text': msg['message'],
-                'time': msg['date'].strftime("%Y-%m-%d, %H:%M:%S"),
+                'time': msg['date'].timestamp(),
                 'source': 'Telegram',
                 'link': self.url
             }

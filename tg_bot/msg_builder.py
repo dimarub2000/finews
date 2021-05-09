@@ -1,5 +1,8 @@
+from datetime import datetime
+
+
 class MessageBuilder(object):
-    def __init__(self, compressor=None, link_format="Источик: {}\n", timestamp_format="Время Публикации: {}\n"):
+    def __init__(self, compressor=None, link_format="Источник: {}\n", timestamp_format="Время Публикации: {}\n"):
         self.link_format = link_format
         self.timestamp_format = timestamp_format
         self.compressor = compressor
@@ -9,7 +12,7 @@ class MessageBuilder(object):
         return text
 
     def __add_timestamp(self, text, timestamp) -> str:
-        text += self.timestamp_format.format(timestamp)
+        text += self.timestamp_format.format(datetime.fromtimestamp(timestamp).strftime("%Y-%m-%d, %H:%M:%S"))
         return text
 
     def build_message(self, data) -> str:

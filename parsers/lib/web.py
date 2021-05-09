@@ -21,8 +21,8 @@ class HtmlParser(lib_parser.Parser):
         return json.dumps({'Parse error'})
 
     @staticmethod
-    def format_time(date_data, format_="%Y-%m-%d, %H:%M:%S") -> str:
-        return date_data.strftime(format_)
+    def format_time(date_data) -> int:
+        return date_data.timestamp()
 
 
 class FinamParser(HtmlParser):

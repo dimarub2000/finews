@@ -7,7 +7,7 @@ from database import app, db
 
 class News(db.Model):
     id = db.Column(db.Integer, primary_key=True, unique=True)
-    time = db.Column(db.String(100))
+    time = db.Column(db.Integer)
     link = db.Column(db.String(100))
     text = db.Column(db.String(10000))
     tags = db.relationship('Tags', backref='news')
@@ -73,9 +73,9 @@ def get_top():
     limit = request.args.get('limit', default=0, type=int)
     print(limit)
     if tag is None:
-        news = News.query.order_by(desc(News.id)).limit(limit).all()
+        news = News.query.order_by(desc(News.time)).limit(limit).all()
     else:
-        news = News.query.filter(News.tags.any(tag=tag)).order_by(desc(News.id)).limit(limit).all()
+        news = News.query.filter(News.tags.any(tag=tag)).order_by(desc(News.time)).limit(limit).all()
 
     return json.dumps(News.news_to_list(news))
 
