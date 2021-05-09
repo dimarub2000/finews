@@ -34,7 +34,7 @@ class Tags(db.Model):
     news_id = db.Column(db.Integer, db.ForeignKey('news.id'), nullable=False)
 
 
-class Subscriptions(db.Model):
+class Subs(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     tag = db.Column(db.String(16), nullable=True)
     user_id = db.Column(db.String(100))
@@ -89,12 +89,12 @@ def get_tags():
 @app.route('/subscribe', methods=['POST'])
 def subscribe():
     data = request.get_json()
-    subscription = Subscriptions.query.filter_by(user_id=data['user_id'], tag=data['tag']).first()
+    subscription = Subs.query.filter_by(user_id=data['user_id'], tag=data['tag']).first()
     app.logger.critical(subscription)
     if subscription is not None:
         return Response(status=400)
 
-    db.session.add(Subscriptions(
+    db.session.add(Subs(
         user_id=data['user_id'],
         tag=data['tag']
     ))
@@ -105,7 +105,7 @@ def subscribe():
 @app.route('/unsubscribe', methods=['DELETE'])
 def unsubscribe():
     data = request.get_json()
-    subscription = Subscriptions.query.filter_by(user_id=data['user_id'], tag=data['tag']).first()
+    subscription = Subs.query.filter_by(user_id=data['user_id'], tag=data['tag']).first()
     if subscription is None:
         return Response(status=400)
 
@@ -117,8 +117,15 @@ def unsubscribe():
 @app.route('/all_subscriptions', methods=['GET'])
 def all_subscriptions():
     user_id = request.args.get('user_id')
-    tags = db.session.query(Subscriptions.tag).filter_by(user_id=user_id).all()
+    tags = db.session.query(Subs.tag).filter_by(user_id=user_id).all()
     return json.dumps(list(map(lambda x: x.tag, tags)))
+
+
+@app.route('/get_subscribers', methods=['GET'])
+def get_subscribers():
+    tags = request.get_json()
+    user_ids = db.session.query(Subs.user_id).filter(Subs.tag.in_(tags)).distinct().all()
+    return json.dumps(list(map(lambda x: x.user_id, user_ids)))
 
 
 if __name__ == "__main__":

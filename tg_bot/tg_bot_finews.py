@@ -1,10 +1,13 @@
+import os
 import telebot
 import requests
+
 from tg_bot.msg_builder import MessageBuilder
 from tg_bot.compressor import Compressor
 from tg_bot.markup_builder import MarkupBuilder
 
-bot = telebot.TeleBot('1581250567:AAHChhfr-OW4e0wj6jm_Bc4OmJNVHVm9Vzo')
+TG_BOT_TOKEN = os.environ['TG_BOT_TOKEN']
+bot = telebot.TeleBot(TG_BOT_TOKEN)
 
 state = 0
 
