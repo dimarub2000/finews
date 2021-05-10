@@ -206,6 +206,8 @@ def news_feed(message, news_feed_handler):
     elif message.text == "Дальше":
         news = news_feed_handler.get_new_page()
         show_news(message, news, news_feed_handler)
+    else:
+        bot.register_next_step_handler(message, news_feed, news_feed_handler)
 
 
 def show_news(message, news, news_feed_handler):
