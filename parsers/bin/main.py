@@ -89,15 +89,15 @@ def main():
     workers = cfg_parser.get_service_setting(SERVICE_NAME, 'num_workers', 4)
     timeout = cfg_parser.get_service_setting(SERVICE_NAME, 'timeout', 600)
     while True:
-        with Pool(processes=workers) as pool:
-            logger.info('Searching for news....')
-            start_time = time.perf_counter()
-            for source in sources:
-                if source.type != 'tg':
-                    pool.apply_async(get_news_from_source, args=(source,))
-                else:
-                    get_news_from_source(source)
-            elapsed_time = time.perf_counter() - start_time
+        pool = Pool(processes=workers)
+        logger.info('Searching for news....')
+        start_time = time.perf_counter()
+        for source in sources:
+            if source.type != 'tg':
+                pool.apply_async(get_news_from_source, args=(source,))
+            else:
+                get_news_from_source(source)
+        elapsed_time = time.perf_counter() - start_time
         pool.close()
         pool.join()
         logger.info(f"Elapsed time: {elapsed_time:0.4f} seconds")
