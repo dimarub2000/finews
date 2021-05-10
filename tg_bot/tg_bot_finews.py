@@ -22,19 +22,25 @@ logger = logging.getLogger(SERVICE_NAME)
 logger.setLevel(cfg_parser.get_log_level(SERVICE_NAME, 'INFO'))
 
 
+@bot.message_handler(commands=['start'])
+def start_handler(message):
+    bot.send_message(message.from_user.id, "Привет! Меня зовут Finews-бот, "
+                                           "и я помогу тебе держать руку на пульсе "
+                                           "Чтобы посмотреть что я умею напиши '/help'", reply_markup=None)
+
+
+@bot.message_handler(commands=['help'])
+def help_handler(message):
+    markup_builder = MarkupBuilder()
+    markup = markup_builder.build_markup(['Новости по тикеру компании', 'Последние новости', 'Подписки', 'Поиск'])
+    bot.send_message(message.from_user.id, "Выбери одну из команд на панели ниже", reply_markup=markup)
+
+
 @bot.message_handler(content_types=['text'])
 def get_text_messages(message):
-
     markup_builder = MarkupBuilder()
 
-    if message.text == "/commands":
-        markup = markup_builder.build_markup(['Новости по тикеру компании', 'Последние новости', 'Подписки', 'Поиск'])
-        bot.send_message(message.from_user.id, "Выбери одну из команд на панели ниже", reply_markup=markup)
-    elif message.text == "/help":
-        bot.send_message(message.from_user.id,
-                         "Привет! Напиши '/commands' и тебе выведутся все доступные на данный момент функции данного "
-                         "бота.")
-    elif message.text == "Новости по тикеру компании":
+    if message.text == "Новости по тикеру компании":
         markup = markup_builder.build_markup(['$TSLA', '$GOOGL', '$WMT', 'Все тикеры', 'Выйти'])
         bot.send_message(message.from_user.id, "Впиши тикер компании, которая тебя интересует"
                                                " или посмотри по каким тикерам сейчас есть новости",
@@ -135,9 +141,11 @@ def unsubscribe(message):
     user_tag = message.text.replace('$', '').upper()
     response = requests.delete(DATABASE_URI + '/unsubscribe', json={"user_id": message.from_user.id, "tag": user_tag})
     if response.status_code == 400:
-        bot.send_message(message.from_user.id, "Кажется, ты не был подписан на новости этой компании!", reply_markup=markup)
+        bot.send_message(message.from_user.id, "Кажется, ты не был подписан на новости этой компании!",
+                         reply_markup=markup)
     else:
-        bot.send_message(message.from_user.id, "Ты отписался от новостей компании {}".format(user_tag), reply_markup=markup)
+        bot.send_message(message.from_user.id, "Ты отписался от новостей компании {}".format(user_tag),
+                         reply_markup=markup)
     bot.register_next_step_handler(message, get_subscription)
 
 
@@ -166,8 +174,8 @@ def get_tag(message):
         response = requests.get(DATABASE_URI + '/top?tag={}&limit={}'.format(user_tag, limit))
         if response.status_code == 404:
             bot.send_message(message.from_user.id, "К сожалению по даному тикеру у нас нет новостей,"
-                    " но ты можешь подписаться, нажав на кнопку Подписки, и мы будем присылать свежие"
-                    " новости по этому и любому другому тикеру")
+                                                   " но ты можешь подписаться, нажав на кнопку Подписки, и мы будем присылать свежие"
+                                                   " новости по этому и любому другому тикеру")
             main_menu_message(message.from_user.id)
             return
         news_feed_handler = NewsFeedHandler(response.json(), page_size)
@@ -203,7 +211,7 @@ def news_feed(message, news_feed_handler):
 def show_news(message, news, news_feed_handler):
     if news is None:
         bot.send_message(message.from_user.id, "По твоему запросу у нас закончились новости,"
-        " но ты можешь подписаться на свежие новости по этой и любой другой компании, нажав на кнопку Подписки")
+                                               " но ты можешь подписаться на свежие новости по этой и любой другой компании, нажав на кнопку Подписки")
         main_menu_message(message.from_user.id)
         return
     compressor = Compressor()
