@@ -25,7 +25,7 @@ logger.setLevel(cfg_parser.get_service_setting(SERVICE_NAME, 'log_level', 'INFO'
 
 def send_message(chat_id, text):
     url = r'https://api.telegram.org/bot{}/{}'.format(TG_BOT_TOKEN, "sendMessage")
-    logger.info('Sending subscription to %d' % chat_id)
+    logger.info('Sending subscription to %s' % chat_id)
     requests.post(url, data={"chat_id": chat_id, "text": text, "disable_web_page_preview": True})
 
 
