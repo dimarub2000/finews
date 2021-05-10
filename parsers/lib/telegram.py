@@ -5,6 +5,10 @@ import parsers.lib.parser as lib_parser
 from telethon import TelegramClient
 from telethon.tl.functions.messages import (GetHistoryRequest)
 from telethon.tl.types import PeerChannel
+from config.config_parser import FinewsConfigParser
+
+cfg_parser = FinewsConfigParser()
+USE_MOSCOW_TIME = int(cfg_parser.get_service_setting("parsers", "use_moscow_time", 0))
 
 
 class TgParser(lib_parser.Parser):
@@ -51,7 +55,7 @@ class TgParser(lib_parser.Parser):
             msg = message.to_dict()
             msg = {
                 'text': msg['message'],
-                'time': msg['date'].timestamp(),
+                'time': msg['date'].timestamp() + USE_MOSCOW_TIME * 3*60*60,
                 'source': 'Telegram',
                 'link': self.url + '/' + str(msg['id'])
             }
