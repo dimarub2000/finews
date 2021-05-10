@@ -24,7 +24,7 @@
     "parsers": {
         "log_level": "INFO",
         "settings": {
-            "use_moscow_time": false,
+            "use_moscow_time": true,
             "timeout": 600
         }
     }
