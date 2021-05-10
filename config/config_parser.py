@@ -12,5 +12,8 @@ class FinewsConfigParser(object):
     def get_service_settings(self, service) -> dict:
         return self.data[service]["settings"]
 
-    def get_service_setting(self, service, setting):
-        return self.get_service_settings(service)[setting]
+    def get_service_setting(self, service, setting, default_val):
+        val = self.get_service_settings(service).get(setting)
+        if val is None:
+            return default_val
+        return val

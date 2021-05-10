@@ -37,8 +37,8 @@ def get_text_messages(message):
 
         bot.register_next_step_handler(message, get_tag)
     elif message.text == "Последние новости":
-        limit = cfg_parser.get_service_setting(SERVICE_NAME, 'max_feed_size')
-        page_size = cfg_parser.get_service_setting(SERVICE_NAME, 'page_size')
+        limit = cfg_parser.get_service_setting(SERVICE_NAME, 'max_feed_size', 30)
+        page_size = cfg_parser.get_service_setting(SERVICE_NAME, 'page_size', 3)
         data = requests.get(DATABASE_URI + '/top?limit={}'.format(limit)).json()
         news_feed_handler = NewsFeedHandler(data=data, page_size=page_size)
         news = news_feed_handler.get_new_page()
@@ -148,8 +148,8 @@ def get_tag(message):
         main_menu_message(message.from_user.id)
     else:
         user_tag = message.text.replace('$', '').upper()
-        limit = cfg_parser.get_service_setting(SERVICE_NAME, 'max_feed_size')
-        page_size = cfg_parser.get_service_setting(SERVICE_NAME, 'page_size')
+        limit = cfg_parser.get_service_setting(SERVICE_NAME, 'max_feed_size', 30)
+        page_size = cfg_parser.get_service_setting(SERVICE_NAME, 'page_size', 3)
         data = requests.get(DATABASE_URI + '/top?tag={}&limit={}'.format(user_tag, limit)).json()
         news_feed_handler = NewsFeedHandler(data, page_size)
         news = news_feed_handler.get_new_page()
@@ -161,8 +161,8 @@ def get_query(message):
         main_menu_message(message.from_user.id)
         return
     user_query = message.text
-    limit = cfg_parser.get_service_setting(SERVICE_NAME, 'max_feed_size')
-    page_size = cfg_parser.get_service_setting(SERVICE_NAME, 'page_size')
+    limit = cfg_parser.get_service_setting(SERVICE_NAME, 'max_feed_size', 30)
+    page_size = cfg_parser.get_service_setting(SERVICE_NAME, 'page_size', 3)
     data = requests.get(SEARCH_URI + '/search?limit={}'.format(limit), json=user_query).json()
     news_feed_handler = NewsFeedHandler(data=data, page_size=page_size)
     news = news_feed_handler.get_new_page()

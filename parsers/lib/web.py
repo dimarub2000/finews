@@ -8,7 +8,7 @@ from config.config_parser import FinewsConfigParser
 from bs4 import BeautifulSoup
 
 cfg_parser = FinewsConfigParser()
-ASSUME_WEB_MOSCOW = int(cfg_parser.get_service_setting("parsers", "use_moscow_time"))
+ASSUME_WEB_MOSCOW = int(cfg_parser.get_service_setting("parsers", "use_moscow_time", 0))
 
 
 class HtmlParser(lib_parser.Parser):

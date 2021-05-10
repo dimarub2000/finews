@@ -3,6 +3,7 @@ import requests
 
 from flask import Flask
 from flask import request
+from multiprocessing import Pool
 from filter.tags_parser import TagsParser
 from tg_bot.msg_builder import MessageBuilder
 from config.config_parser import FinewsConfigParser
@@ -13,6 +14,7 @@ cfg_parser = FinewsConfigParser()
 SEARCH_URI = cfg_parser.get_service_url('search')
 DATABASE_URI = cfg_parser.get_service_url('database')
 TG_BOT_TOKEN = os.environ['TG_BOT_TOKEN']
+SERVICE_NAME = 'filter'
 
 
 def send_message(chat_id, text):
@@ -22,13 +24,15 @@ def send_message(chat_id, text):
 
 @app.route('/', methods=['POST'])
 def parse_news():
+    workers = cfg_parser.get_service_setting(SERVICE_NAME, 'num_workers', 4)
     tp = TagsParser()
     data = request.get_json()
     for news in data:
         news["tags"] = tp.find_tags(news["text"])
         resp = requests.get(DATABASE_URI + '/get_subscribers', json=news["tags"])
-        for subscriber in resp.json():
-            send_message(subscriber, MessageBuilder().build_message(news))
+        with Pool(processes=workers) as p:
+            for subscriber in resp.json():
+                p.apply(send_message, args=(subscriber, MessageBuilder().build_message(news)))
 
     requests.post(DATABASE_URI + '/news', json=data)
     requests.post(SEARCH_URI + '/index', json=data)

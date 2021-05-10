@@ -6,7 +6,10 @@
         "addr": "http://127.0.0.1:5000"
     },
     "filter":{
-        "addr": "http://127.0.0.1:9001"
+        "addr": "http://127.0.0.1:9001",
+        "settings": {
+            "num_workers": 4
+        }
     },
     "tg_bot": {
         "settings": {
