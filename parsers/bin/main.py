@@ -33,34 +33,36 @@ def init_sources() -> List:
     BaseManager.register('Source', Source)
     manager = BaseManager()
     manager.start()
+    web_limit = cfg_parser.get_service_setting(SERVICE_NAME, "web_sources_limit", 5)
+    tg_limit = cfg_parser.get_service_setting(SERVICE_NAME, "tg_sources_limit", 20)
     sources = [
         manager.Source(
-            lib_web.BCSParser('https://bcs-express.ru/category/mirovye-rynki', 'BCS', 5),
+            lib_web.BCSParser('https://bcs-express.ru/category/mirovye-rynki', 'BCS', web_limit),
             get_last_time('BCS'),
             'html'
         ),
         manager.Source(
-            lib_web.FinamParser('https://www.finam.ru/analysis/nslent/', 'Finam', 5),
+            lib_web.FinamParser('https://www.finam.ru/analysis/nslent/', 'Finam', web_limit),
             get_last_time('Finam'),
             'html'
         ),
         manager.Source(
-            lib_web.RBKParser('https://quote.rbc.ru/', 'RBK', 5),
+            lib_web.RBKParser('https://quote.rbc.ru/', 'RBK', web_limit),
             get_last_time('RBK'),
             'html'
         ),
         lib_parser.Source(
-            lib_tg.TgParser('https://t.me/Full_Time_Trading', 'Full Time Trading', 10),
+            lib_tg.TgParser('https://t.me/Full_Time_Trading', 'Full Time Trading', tg_limit),
             get_last_time('Full Time Trading'),
             'telegram'
         ),
         lib_parser.Source(
-            lib_tg.TgParser('https://t.me/stock_and_news', 'Financial Times', 10),
+            lib_tg.TgParser('https://t.me/stock_and_news', 'Financial Times', tg_limit),
             get_last_time('Financial Times'),
             'telegram'
         ),
         lib_parser.Source(
-            lib_tg.TgParser('https://t.me/mtwits', 'Market Twits', 10),
+            lib_tg.TgParser('https://t.me/mtwits', 'Market Twits', tg_limit),
             get_last_time('Market Twits'),
             'telegram'
         ),
