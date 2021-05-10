@@ -1,13 +1,24 @@
 import json
+import logging
 
-from flask import request, Response
-from sqlalchemy import desc
 from flask import Flask
+from flask import request, Response
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import desc
+
+from config.config_parser import FinewsConfigParser
+
 
 app = Flask(__name__)
-app.config.from_pyfile('config.py')
+app.config.from_pyfile('database_config.py')
 db = SQLAlchemy(app)
+SERVICE_NAME = 'database'
+
+cfg_parser = FinewsConfigParser()
+
+logging.basicConfig()
+logger = logging.getLogger(SERVICE_NAME)
+logger.setLevel(cfg_parser.get_log_level(SERVICE_NAME, 'INFO'))
 
 
 class News(db.Model):
@@ -47,6 +58,7 @@ class Subs(db.Model):
 
 @app.route('/news', methods=['POST'])
 def add_news():
+    logger.info("got new data")
     data = request.get_json()
     for news in data:
         cur_news = News(
@@ -90,10 +102,12 @@ def get_tags():
 
 @app.route('/subscribe', methods=['POST'])
 def subscribe():
+    logger.info("got new subscription")
     data = request.get_json()
+    logger.debug("User: %d, Tag: %s" % (data['user_id'], data['tag']))
     subscription = Subs.query.filter_by(user_id=data['user_id'], tag=data['tag']).first()
-    app.logger.critical(subscription)
     if subscription is not None:
+        logger.debug('User %d already subscribed on %s' % (data['user_id'], data['tag']))
         return Response(status=400)
 
     db.session.add(Subs(
@@ -107,8 +121,11 @@ def subscribe():
 @app.route('/unsubscribe', methods=['DELETE'])
 def unsubscribe():
     data = request.get_json()
+    logger.info("got new unsubscription")
+    logger.debug("User: %d, Tag: %s" % (data['user_id'], data['tag']))
     subscription = Subs.query.filter_by(user_id=data['user_id'], tag=data['tag']).first()
     if subscription is None:
+        logger.debug('User %d is not subscribed on %s' % (data['user_id'], data['tag']))
         return Response(status=400)
 
     db.session.delete(subscription)

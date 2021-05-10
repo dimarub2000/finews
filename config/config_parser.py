@@ -17,3 +17,9 @@ class FinewsConfigParser(object):
         if val is None:
             return default_val
         return val
+
+    def get_log_level(self, service, default_val) -> str:
+        log_level = self.data[service].get('log_level')
+        if log_level is None:
+            return default_val
+        return log_level

@@ -1,15 +1,23 @@
 import json
 import os
+import logging
 from flask import Flask
 from elastic_enterprise_search import AppSearch
 from flask import request
+
+from config.config_parser import FinewsConfigParser
 
 app = Flask(__name__)
 
 SEARCH_HOST = os.environ['SEARCH_HOST']
 SEARCH_AUTH = os.environ['SEARCH_AUTH']
-
+SERVICE_NAME = 'search'
+cfg_parser = FinewsConfigParser()
 app_search = AppSearch(SEARCH_HOST, http_auth=SEARCH_AUTH)
+
+logging.basicConfig()
+logger = logging.getLogger(SERVICE_NAME)
+logger.setLevel(cfg_parser.get_log_level(SERVICE_NAME, 'INFO'))
 
 
 def to_dict(result):

@@ -1,25 +1,31 @@
 {
     "search":{
+        "log_level": "INFO",
         "addr": "http://127.0.0.1:9002"
     },
     "database":{
+        "log_level": "INFO",
         "addr": "http://127.0.0.1:5000"
     },
     "filter":{
+        "log_level": "INFO",
         "addr": "http://127.0.0.1:9001",
         "settings": {
             "num_workers": 4
         }
     },
     "tg_bot": {
+        "log_level": "INFO",
         "settings": {
             "page_size": 3,
             "max_feed_size": 30
         }
     },
     "parsers": {
+        "log_level": "INFO",
         "settings": {
-            "use_moscow_time": false
+            "use_moscow_time": false,
+            "timeout": 600
         }
     }
 }

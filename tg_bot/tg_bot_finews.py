@@ -1,6 +1,7 @@
 import os
 import telebot
 import requests
+import logging
 
 from tg_bot.msg_builder import MessageBuilder
 from tg_bot.compressor import Compressor
@@ -15,6 +16,10 @@ cfg_parser = FinewsConfigParser()
 DATABASE_URI = cfg_parser.get_service_url('database')
 SEARCH_URI = cfg_parser.get_service_url('search')
 SERVICE_NAME = 'tg_bot'
+
+logging.basicConfig()
+logger = logging.getLogger(SERVICE_NAME)
+logger.setLevel(cfg_parser.get_log_level(SERVICE_NAME, 'INFO'))
 
 
 @bot.message_handler(content_types=['text'])
