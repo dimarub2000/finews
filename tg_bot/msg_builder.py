@@ -8,7 +8,8 @@ class MessageBuilder(object):
         self.compressor = compressor
 
     def __add_link(self, text, link) -> str:
-        text += "".join(["\n", self.link_format.format(link)])
+        if text.find(link) == -1:
+            text += "".join(["\n", self.link_format.format(link)])
         return text
 
     def __add_timestamp(self, text, timestamp) -> str:
