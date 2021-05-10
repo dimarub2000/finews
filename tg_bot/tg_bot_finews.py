@@ -115,7 +115,10 @@ def subscribe(message):
         bot.register_next_step_handler(message, get_subscription)
         return
     user_tag = message.text.replace('$', '').upper()
-    requests.post(DATABASE_URI + '/subscribe', json={"user_id": message.from_user.id, "tag": user_tag})
+    response = requests.post(DATABASE_URI + '/subscribe', json={"user_id": message.from_user.id, "tag": user_tag})
+    if response.status_code == 400:
+        bot.send_message(message.from_user.id, "Кажется, ты уже подписан на новости этой компании!"
+                                        " Хочешь подписаться на ещё какую-нибудь?", reply_markup=markup)
     bot.send_message(message.from_user.id, "Вы подписались на новости компании {}".format(user_tag), reply_markup=markup)
     bot.register_next_step_handler(message, get_subscription)
 
@@ -128,7 +131,10 @@ def unsubscribe(message):
         bot.register_next_step_handler(message, get_subscription)
         return
     user_tag = message.text.replace('$', '').upper()
-    requests.delete(DATABASE_URI + '/unsubscribe', json={"user_id": message.from_user.id, "tag": user_tag})
+    response = requests.delete(DATABASE_URI + '/unsubscribe', json={"user_id": message.from_user.id, "tag": user_tag})
+    if response.status_code == 400:
+        bot.send_message(message.from_user.id, "Кажется, ты не был подписан на новости этой компании!"
+                                        " Хочешь посмотреть на свои актуальные подписки?", reply_markup=markup)
     bot.send_message(message.from_user.id, "Вы отписались от новостей компании {}".format(user_tag), reply_markup=markup)
     bot.register_next_step_handler(message, get_subscription)
 
@@ -155,8 +161,13 @@ def get_tag(message):
         user_tag = message.text.replace('$', '').upper()
         limit = cfg_parser.get_service_setting(SERVICE_NAME, 'max_feed_size', 30)
         page_size = cfg_parser.get_service_setting(SERVICE_NAME, 'page_size', 3)
-        data = requests.get(DATABASE_URI + '/top?tag={}&limit={}'.format(user_tag, limit)).json()
-        news_feed_handler = NewsFeedHandler(data, page_size)
+        response = requests.get(DATABASE_URI + '/top?tag={}&limit={}'.format(user_tag, limit))
+        if response.status_code == 404:
+            bot.send_message(message.from_user.id, "К сожалению по даному тикеру у нас нет новостей,"
+                    " но ты можешь подписаться, нажав на кнопку Подписки, и мы будем присылать свежие"
+                    " новости по этому и любому другому тикеру")
+            main_menu_message(message.from_user.id)
+        news_feed_handler = NewsFeedHandler(response.json(), page_size)
         news = news_feed_handler.get_new_page()
         show_news(message, news, news_feed_handler)
 
@@ -168,8 +179,11 @@ def get_query(message):
     user_query = message.text
     limit = cfg_parser.get_service_setting(SERVICE_NAME, 'max_feed_size', 30)
     page_size = cfg_parser.get_service_setting(SERVICE_NAME, 'page_size', 3)
-    data = requests.get(SEARCH_URI + '/search?limit={}'.format(limit), json=user_query).json()
-    news_feed_handler = NewsFeedHandler(data=data, page_size=page_size)
+    response = requests.get(SEARCH_URI + '/search?limit={}'.format(limit), json=user_query)
+    if response.status_code == 404:
+        bot.send_message(message.from_user.id, "К сожалению, по твоему запросу у нас нет новостей.")
+        main_menu_message(message.from_user.id)
+    news_feed_handler = NewsFeedHandler(data=response.json(), page_size=page_size)
     news = news_feed_handler.get_new_page()
     show_news(message, news, news_feed_handler)
 
@@ -184,7 +198,8 @@ def news_feed(message, news_feed_handler):
 
 def show_news(message, news, news_feed_handler):
     if news is None:
-        bot.send_message(message.from_user.id, "По твоему запросу у нас закончились новости!")
+        bot.send_message(message.from_user.id, "По твоему запросу у нас закончились новости,"
+        " но ты можешь подписаться на свежие новости по этой и любой другой компании, нажав на кнопку Подписки")
         main_menu_message(message.from_user.id)
         return
     compressor = Compressor()

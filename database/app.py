@@ -72,26 +72,31 @@ def add_news():
             db.session.add(Tags(tag=tag, news=cur_news))
 
     db.session.commit()
-    return 'OK\n'
+    return Response(status=200)
 
 
 @app.route('/news', methods=['GET'])
 def get_news():
     news = News.query.all()
-    return json.dumps(News.news_to_list(news))
+    return Response(json.dumps(News.news_to_list(news)), status=200)
 
 
 @app.route('/top', methods=['GET'])
 def get_top():
     tag = request.args.get('tag')
     limit = request.args.get('limit', default=0, type=int)
-    print(limit)
     if tag is None:
         news = News.query.order_by(desc(News.time)).limit(limit).all()
     else:
         news = News.query.filter(News.tags.any(tag=tag)).order_by(desc(News.time)).limit(limit).all()
 
-    return json.dumps(News.news_to_list(news))
+    response_list = News.news_to_list(news)
+
+    if len(response_list) == 0:
+        logger.gebug('Not found news item for tag: {}'.format(tag))
+        return Response(status=404)
+
+    return Response(json.dumps(News.news_to_list(news)), status=200)
 
 
 @app.route('/tags', methods=['GET'])
@@ -137,14 +142,14 @@ def unsubscribe():
 def all_subscriptions():
     user_id = request.args.get('user_id')
     tags = db.session.query(Subs.tag).filter_by(user_id=user_id).all()
-    return json.dumps(list(map(lambda x: x.tag, tags)))
+    return Response(json.dumps(list(map(lambda x: x.tag, tags))), status=200)
 
 
 @app.route('/get_subscribers', methods=['GET'])
 def get_subscribers():
     tags = request.get_json()
     user_ids = db.session.query(Subs.user_id).filter(Subs.tag.in_(tags)).distinct().all()
-    return json.dumps(list(map(lambda x: x.user_id, user_ids)))
+    return Response(json.dumps(list(map(lambda x: x.user_id, user_ids))), 200)
 
 
 if __name__ == "__main__":

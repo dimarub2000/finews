@@ -3,7 +3,7 @@ import os
 import logging
 from flask import Flask
 from elastic_enterprise_search import AppSearch
-from flask import request
+from flask import request, Response
 
 from config.config_parser import FinewsConfigParser
 
@@ -37,7 +37,11 @@ def search():
     limit = request.args.get('limit', default=1, type=int)
     data = request.get_json()
     search_resp = app_search.search(engine_name="finews-main", body={"query": data})
-    return json.dumps(response_to_list(search_resp)[:limit])
+    response_list = response_to_list(search_resp)[:limit]
+    if len(response_list) == 0:
+        logger.debug('Not found news for request: {}'.format(data))
+        return Response(status=404)
+    return Response(json.dumps(response_list), status=200)
 
 
 @app.route('/index', methods=['POST'])
