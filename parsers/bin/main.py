@@ -98,6 +98,8 @@ def main():
                 else:
                     get_news_from_source(source)
             elapsed_time = time.perf_counter() - start_time
+        pool.close()
+        pool.join()
         logger.info(f"Elapsed time: {elapsed_time:0.4f} seconds")
         time.sleep(timeout)
 
