@@ -4,7 +4,7 @@ import logging
 import time
 
 from flask import Flask
-from flask import request
+from flask import request, Response
 from multiprocessing import Pool
 from filter.tags_parser import TagsParser
 from tg_bot.msg_builder import MessageBuilder
@@ -25,7 +25,7 @@ logger.setLevel(cfg_parser.get_service_setting(SERVICE_NAME, 'log_level', 'INFO'
 
 def send_message(chat_id, text):
     url = r'https://api.telegram.org/bot{}/{}'.format(TG_BOT_TOKEN, "sendMessage")
-    logger.info('Sending subscription to %d' % chat_id)
+    logger.info('Sending subscription to %s' % chat_id)
     requests.post(url, data={"chat_id": chat_id, "text": text, "disable_web_page_preview": True})
 
 
@@ -49,7 +49,7 @@ def parse_news():
     requests.post(DATABASE_URI + '/news', json=data)
     requests.post(SEARCH_URI + '/index', json=data)
     pool.join()
-    return "OK\n"
+    return Response(status=200)
 
 
 if __name__ == '__main__':

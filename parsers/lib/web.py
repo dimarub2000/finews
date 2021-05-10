@@ -2,12 +2,8 @@ import json
 import requests
 import dateparser
 import parsers.lib.parser as lib_parser
-from config.config_parser import FinewsConfigParser
 
 from bs4 import BeautifulSoup
-
-cfg_parser = FinewsConfigParser()
-ASSUME_WEB_MOSCOW = int(cfg_parser.get_service_setting("parsers", "use_moscow_time", 0))
 
 
 class HtmlParser(lib_parser.Parser):
@@ -26,7 +22,7 @@ class HtmlParser(lib_parser.Parser):
 
     @staticmethod
     def format_time(date_data) -> int:
-        return date_data.timestamp() - 3 * 60 * 60 * ASSUME_WEB_MOSCOW
+        return date_data.timestamp()
 
 
 class FinamParser(HtmlParser):

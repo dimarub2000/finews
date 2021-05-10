@@ -138,6 +138,17 @@ def unsubscribe():
     return Response(status=200)
 
 
+@app.route('/unsubscribe_all', methods=['DELETE'])
+def unsubscribe_all():
+    data = request.get_json()
+    logger.info("got new unsubscription from all")
+    logger.debug("User: %d" % data['user_id'])
+
+    db.session.query(Subs).filter_by(user_id=data['user_id']).delete(synchronize_session=False)
+    db.session.commit()
+    return Response(status=200)
+
+
 @app.route('/all_subscriptions', methods=['GET'])
 def all_subscriptions():
     user_id = request.args.get('user_id')

@@ -13,3 +13,18 @@ class Source(object):
         self.parser = parser
         self.name = name
         self.type = source_type
+
+    def get_type(self):
+        return self.type
+
+    def get_last_time(self):
+        return self.last_time
+
+    def set_last_time(self, last_time):
+        self.last_time = last_time
+
+    def get_name(self):
+        return self.name
+
+    def get_parser(self):
+        return self.parser
