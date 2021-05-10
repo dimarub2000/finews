@@ -159,7 +159,7 @@ def get_all_tickers(tickers_list):
 
 
 def get_tag(message):
-    if message.text == "все тикеры":
+    if message.text == "Все тикеры":
         tickers_list = list(map(lambda x: '$' + x, requests.get(DATABASE_URI + '/tags').json()))
         tickers = get_all_tickers(tickers_list)
         bot.send_message(message.from_user.id, tickers)
