@@ -115,12 +115,7 @@ def subscribe(message):
         bot.register_next_step_handler(message, get_subscription)
         return
     user_tag = message.text.replace('$', '').upper()
-    response = requests.post(DATABASE_URI + '/subscribe', json={"user_id": message.from_user.id, "tag": user_tag})
-    if response.status_code == 400:
-        bot.send_message(message.from_user.id, "Кажется, ты уже подписан на новости этой компании!"
-                                        " Хочешь подписаться на ещё какую-нибудь?", reply_markup=markup)
-        main_menu_message(message.from_user.id)
-        return
+    requests.post(DATABASE_URI + '/subscribe', json={"user_id": message.from_user.id, "tag": user_tag})
     bot.send_message(message.from_user.id, "Вы подписались на новости компании {}".format(user_tag), reply_markup=markup)
     bot.register_next_step_handler(message, get_subscription)
 
@@ -135,11 +130,9 @@ def unsubscribe(message):
     user_tag = message.text.replace('$', '').upper()
     response = requests.delete(DATABASE_URI + '/unsubscribe', json={"user_id": message.from_user.id, "tag": user_tag})
     if response.status_code == 400:
-        bot.send_message(message.from_user.id, "Кажется, ты не был подписан на новости этой компании!"
-                                        " Хочешь посмотреть на свои актуальные подписки?", reply_markup=markup)
-        main_menu_message(message.from_user.id)
-        return
-    bot.send_message(message.from_user.id, "Вы отписались от новостей компании {}".format(user_tag), reply_markup=markup)
+        bot.send_message(message.from_user.id, "Кажется, ты не был подписан на новости этой компании!", reply_markup=markup)
+    else:
+        bot.send_message(message.from_user.id, "Вы отписались от новостей компании {}".format(user_tag), reply_markup=markup)
     bot.register_next_step_handler(message, get_subscription)
 
 
