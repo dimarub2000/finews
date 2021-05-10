@@ -93,7 +93,7 @@ def get_top():
     response_list = News.news_to_list(news)
 
     if len(response_list) == 0:
-        logger.gebug('Not found news item for tag: {}'.format(tag))
+        logger.debug('Not found news item for tag: {}'.format(tag))
         return Response(status=404)
 
     return Response(json.dumps(News.news_to_list(news)), status=200)

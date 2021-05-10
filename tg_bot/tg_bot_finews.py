@@ -119,6 +119,8 @@ def subscribe(message):
     if response.status_code == 400:
         bot.send_message(message.from_user.id, "Кажется, ты уже подписан на новости этой компании!"
                                         " Хочешь подписаться на ещё какую-нибудь?", reply_markup=markup)
+        main_menu_message(message.from_user.id)
+        return
     bot.send_message(message.from_user.id, "Вы подписались на новости компании {}".format(user_tag), reply_markup=markup)
     bot.register_next_step_handler(message, get_subscription)
 
@@ -135,6 +137,8 @@ def unsubscribe(message):
     if response.status_code == 400:
         bot.send_message(message.from_user.id, "Кажется, ты не был подписан на новости этой компании!"
                                         " Хочешь посмотреть на свои актуальные подписки?", reply_markup=markup)
+        main_menu_message(message.from_user.id)
+        return
     bot.send_message(message.from_user.id, "Вы отписались от новостей компании {}".format(user_tag), reply_markup=markup)
     bot.register_next_step_handler(message, get_subscription)
 
@@ -167,6 +171,7 @@ def get_tag(message):
                     " но ты можешь подписаться, нажав на кнопку Подписки, и мы будем присылать свежие"
                     " новости по этому и любому другому тикеру")
             main_menu_message(message.from_user.id)
+            return
         news_feed_handler = NewsFeedHandler(response.json(), page_size)
         news = news_feed_handler.get_new_page()
         show_news(message, news, news_feed_handler)
@@ -183,6 +188,7 @@ def get_query(message):
     if response.status_code == 404:
         bot.send_message(message.from_user.id, "К сожалению, по твоему запросу у нас нет новостей.")
         main_menu_message(message.from_user.id)
+        return
     news_feed_handler = NewsFeedHandler(data=response.json(), page_size=page_size)
     news = news_feed_handler.get_new_page()
     show_news(message, news, news_feed_handler)
