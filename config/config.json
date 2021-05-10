@@ -24,8 +24,10 @@
     "parsers": {
         "log_level": "INFO",
         "settings": {
+            "web_sources_limit": 5,
+            "tg_sources_limit": 20,
             "use_moscow_time": true,
-            "timeout": 600
+            "timeout": 300
         }
     }
 }

@@ -25,39 +25,41 @@ def init_sources() -> List:
     BaseManager.register('Source', Source)
     manager = BaseManager()
     manager.start()
+    web_limit = cfg_parser.get_service_setting(SERVICE_NAME, "web_sources_limit", 5)
+    tg_limit = cfg_parser.get_service_setting(SERVICE_NAME, "tg_sources_limit", 20)
     sources = [
         manager.Source(
-            lib_web.BCSParser('https://bcs-express.ru/category/mirovye-rynki', 5),
+            lib_web.BCSParser('https://bcs-express.ru/category/mirovye-rynki', web_limit),
             'BCS',
             None,
             'html'
         ),
         manager.Source(
-            lib_web.FinamParser('https://www.finam.ru/analysis/nslent/', 5),
+            lib_web.FinamParser('https://www.finam.ru/analysis/nslent/', web_limit),
             'Finam',
             None,
             'html'
         ),
         manager.Source(
-            lib_web.RBKParser('https://quote.rbc.ru/', 5),
+            lib_web.RBKParser('https://quote.rbc.ru/', web_limit),
             'RBK',
             None,
             'html'
         ),
         lib_parser.Source(
-            lib_tg.TgParser('https://t.me/Full_Time_Trading', 5),
+            lib_tg.TgParser('https://t.me/Full_Time_Trading', tg_limit),
             'Full Time Trading',
             None,
             'tg'
         ),
         lib_parser.Source(
-            lib_tg.TgParser('https://t.me/stock_and_news', 10),
+            lib_tg.TgParser('https://t.me/stock_and_news', tg_limit),
             'Financial Times',
             None,
             'tg'
         ),
         lib_parser.Source(
-            lib_tg.TgParser('https://t.me/mtwits', 10),
+            lib_tg.TgParser('https://t.me/mtwits', tg_limit),
             'Market Twits',
             None,
             'tg'
