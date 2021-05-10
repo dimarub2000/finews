@@ -4,7 +4,7 @@ import logging
 import time
 
 from flask import Flask
-from flask import request
+from flask import request, Response
 from multiprocessing import Pool
 from filter.tags_parser import TagsParser
 from tg_bot.msg_builder import MessageBuilder
@@ -49,7 +49,7 @@ def parse_news():
     requests.post(DATABASE_URI + '/news', json=data)
     requests.post(SEARCH_URI + '/index', json=data)
     pool.join()
-    return "OK\n"
+    return Response(status=200)
 
 
 if __name__ == '__main__':
