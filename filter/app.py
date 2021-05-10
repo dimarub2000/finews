@@ -47,7 +47,7 @@ def parse_news():
     elapsed_time = time.perf_counter() - start_time
     logger.info(f"Elapsed time: {elapsed_time:0.4f} seconds")
     requests.post(DATABASE_URI + '/news', json=data)
-    # requests.post(SEARCH_URI + '/index', json=data)
+    requests.post(SEARCH_URI + '/index', json=data)
     pool.join()
     return Response(status=200)
 
