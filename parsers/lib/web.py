@@ -9,8 +9,8 @@ from bs4 import BeautifulSoup
 class HtmlParser(lib_parser.Parser):
     """Parses single html page to JSON"""
 
-    def __init__(self, url, limit=1):
-        super().__init__(url, limit)
+    def __init__(self, url, name, limit=1):
+        super().__init__(url, name, limit)
 
     def get_data(self) -> str:
         resp = requests.get(self.url)
@@ -31,7 +31,7 @@ class FinamParser(HtmlParser):
         for news in soup.find_all('td', class_='ntitle bdotline', limit=self.limit):
             for link in news.find_all('a', class_='f-fake-url', limit=1):
                 new_url = 'https://www.finam.ru' + link.get('href')
-                finam_parser = FinamCoreParser(new_url)
+                finam_parser = FinamCoreParser(new_url, self.name)
                 res = json.loads(finam_parser.get_data())
                 if res is not None:
                     docs.append(res)
@@ -45,7 +45,7 @@ class FinamCoreParser(HtmlParser):
             soup.find('div', class_='sm lightgrey mb05 mt15').get_text()[:17],
             settings={'DATE_ORDER': 'DMY'}
         ))
-        return json.dumps({'text': text, 'time': time, 'source': 'Finam', 'link': self.url})
+        return json.dumps({'text': text, 'time': time, 'source': self.name, 'link': self.url})
 
 
 class BCSParser(HtmlParser):
@@ -53,7 +53,7 @@ class BCSParser(HtmlParser):
         docs = []
         for news in soup.find_all('a', class_='feed-item__head', limit=self.limit):
             new_url = 'https://www.bcs-express.ru' + news.get('href')
-            bcs_parser = BCSCoreParser(new_url)
+            bcs_parser = BCSCoreParser(new_url, self.name)
             res = json.loads(bcs_parser.get_data())
             if res is not None:
                 docs.append(res)
@@ -64,7 +64,7 @@ class BCSCoreParser(HtmlParser):
     def parse(self, soup):
         text = soup.find('div', class_='article__text').get_text().strip()
         time = self.format_time(dateparser.parse(soup.find('div', class_='article__info-time').get_text().strip()))
-        return json.dumps({'text': text, 'time': time, 'source': 'BCS', 'link': self.url})
+        return json.dumps({'text': text, 'time': time, 'source': self.name, 'link': self.url})
 
 
 class RBKParser(HtmlParser):
@@ -78,13 +78,12 @@ class RBKParser(HtmlParser):
                 news.find('span', class_='q-item__description').get_text().strip(),
                 link
             )
-            docs.append({'text': text, 'time': time, 'source': 'RBK', 'link': link})
+            docs.append({'text': text, 'time': time, 'source': self.name, 'link': link})
         return json.dumps(docs)
 
 
 def main():
-    url = 'https://quote.rbc.ru/'
-    parser = RBKParser(url)
+    parser = RBKParser('https://quote.rbc.ru/', 'RBC')
     res = json.loads(parser.get_data())
     for elem in res:
         print(elem)

@@ -14,11 +14,19 @@ from typing import List
 
 cfg_parser = FinewsConfigParser()
 FILTER_SERVICE_URL = cfg_parser.get_service_url('filter')
+DATABASE_URL = cfg_parser.get_service_url('database')
 SERVICE_NAME = 'parsers'
 
 logging.basicConfig()
 logger = logging.getLogger(SERVICE_NAME)
 logger.setLevel(cfg_parser.get_log_level(SERVICE_NAME, 'INFO'))
+
+
+def get_last_time(source):
+    resp = requests.get(DATABASE_URL + '/last_time?source={}'.format(source))
+    if resp.status_code == requests.codes.OK:
+        return resp.json()
+    return None
 
 
 def init_sources() -> List:
@@ -29,40 +37,34 @@ def init_sources() -> List:
     tg_limit = cfg_parser.get_service_setting(SERVICE_NAME, "tg_sources_limit", 20)
     sources = [
         manager.Source(
-            lib_web.BCSParser('https://bcs-express.ru/category/mirovye-rynki', web_limit),
-            'BCS',
-            None,
+            lib_web.BCSParser('https://bcs-express.ru/category/mirovye-rynki', 'BCS', web_limit),
+            get_last_time('BCS'),
             'html'
         ),
         manager.Source(
-            lib_web.FinamParser('https://www.finam.ru/analysis/nslent/', web_limit),
-            'Finam',
-            None,
+            lib_web.FinamParser('https://www.finam.ru/analysis/nslent/', 'Finam', web_limit),
+            get_last_time('Finam'),
             'html'
         ),
         manager.Source(
-            lib_web.RBKParser('https://quote.rbc.ru/', web_limit),
-            'RBK',
-            None,
+            lib_web.RBKParser('https://quote.rbc.ru/', 'RBK', web_limit),
+            get_last_time('RBK'),
             'html'
         ),
         lib_parser.Source(
-            lib_tg.TgParser('https://t.me/Full_Time_Trading', tg_limit),
-            'Full Time Trading',
-            None,
-            'tg'
+            lib_tg.TgParser('https://t.me/Full_Time_Trading', 'Full Time Trading', tg_limit),
+            get_last_time('Full Time Trading'),
+            'telegram'
         ),
         lib_parser.Source(
-            lib_tg.TgParser('https://t.me/stock_and_news', tg_limit),
-            'Financial Times',
-            None,
-            'tg'
+            lib_tg.TgParser('https://t.me/stock_and_news', 'Financial Times', tg_limit),
+            get_last_time('Financial Times'),
+            'telegram'
         ),
         lib_parser.Source(
-            lib_tg.TgParser('https://t.me/mtwits', tg_limit),
-            'Market Twits',
-            None,
-            'tg'
+            lib_tg.TgParser('https://t.me/mtwits', 'Market Twits', tg_limit),
+            get_last_time('Market Twits'),
+            'telegram'
         ),
     ]
     return sources
@@ -102,7 +104,7 @@ def main():
         logger.info('Searching for news....')
         start_time = time.perf_counter()
         for source in sources:
-            if source.get_type() != 'tg':
+            if source.get_type() != 'telegram':
                 pool.apply_async(get_news_from_source, args=[source])
             else:
                 get_news_from_source(source)
