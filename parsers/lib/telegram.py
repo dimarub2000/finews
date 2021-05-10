@@ -53,7 +53,7 @@ class TgParser(lib_parser.Parser):
                 'text': msg['message'],
                 'time': msg['date'].timestamp(),
                 'source': 'Telegram',
-                'link': self.url
+                'link': self.url + '/' + str(msg['id'])
             }
             all_messages.append(msg)
 
