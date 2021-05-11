@@ -12,8 +12,8 @@ USE_MOSCOW_TIME = int(cfg_parser.get_service_setting("parsers", "use_moscow_time
 
 
 class TgParser(lib_parser.Parser):
-    def __init__(self, url, limit=1):
-        super().__init__(url, limit)
+    def __init__(self, url, name, limit=1):
+        super().__init__(url, name, limit)
 
         env_var = os.environ
 
@@ -56,8 +56,12 @@ class TgParser(lib_parser.Parser):
             msg = {
                 'text': msg['message'],
                 'time': msg['date'].timestamp() + USE_MOSCOW_TIME * 3*60*60,
+<<<<<<< HEAD
                 'source': 'Telegram',
 
+=======
+                'source': self.name,
+>>>>>>> ddda0c3c0516a418e2fab98f65cf50bc7517291e
                 'link': self.url + '/' + str(msg['id'])
             }
             all_messages.append(msg)

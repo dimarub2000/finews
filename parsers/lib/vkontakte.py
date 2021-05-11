@@ -7,8 +7,8 @@ from datetime import datetime
 
 
 class VkParser(lib_parser.Parser):
-    def __init__(self, url, limit=1):
-        super().__init__(url, limit)
+    def __init__(self, url, name, limit=1):
+        super().__init__(url, name, limit)
         login = os.getenv('vk_login')
         password = os.getenv('vk_password')
         vk_session = vk_api.VkApi(login, password)

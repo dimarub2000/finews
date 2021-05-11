@@ -65,7 +65,7 @@ def add_news():
             text=news['text'],
             time=news['time'],
             link=news['link'],
-            source=news.get('source')
+            source=news['source']
         )
         db.session.add(cur_news)
         for tag in news.get('tags', []):
@@ -161,6 +161,13 @@ def get_subscribers():
     tags = request.get_json()
     user_ids = db.session.query(Subs.user_id).filter(Subs.tag.in_(tags)).distinct().all()
     return Response(json.dumps(list(map(lambda x: x.user_id, user_ids))), 200)
+
+
+@app.route('/last_time', methods=['GET'])
+def last_time():
+    source = request.args.get('source')
+    time = db.session.query(News.time).filter_by(source=source).order_by(desc(News.time)).limit(1).first_or_404()
+    return Response(json.dumps(time.time), status=200)
 
 
 if __name__ == "__main__":
