@@ -1,7 +1,10 @@
 {
     "search":{
         "log_level": "INFO",
-        "addr": "http://127.0.0.1:9002"
+        "addr": "http://127.0.0.1:9002",
+        "settings": {
+            "score": 1
+        }
     },
     "database":{
         "log_level": "INFO",
