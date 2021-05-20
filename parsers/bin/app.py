@@ -20,6 +20,7 @@ SERVICE_NAME = 'parsers'
 logging.basicConfig()
 logger = logging.getLogger(SERVICE_NAME)
 logger.setLevel(cfg_parser.get_log_level(SERVICE_NAME, 'INFO'))
+telegram_timeout = 0
 
 
 def get_last_time(source):
@@ -71,8 +72,15 @@ def init_sources() -> List:
 
 
 def get_news_from_source(source: lib_parser.Source) -> None:
+    global telegram_timeout
     collected_news = []
     res = json.loads(source.get_parser().get_data())
+
+    # TODO better logic
+    if 'time_to_sleep' in res:
+        telegram_timeout = int(time.time()) + int(res['time_to_sleep'])
+        return
+
     last_time = source.get_last_time()
     for news in res:
         news_time = news['time']
@@ -96,7 +104,7 @@ def send(data) -> None:
 def main():
     sources = init_sources()
     workers = cfg_parser.get_service_setting(SERVICE_NAME, 'num_workers', 4)
-    timeout = cfg_parser.get_service_setting(SERVICE_NAME, 'timeout', 600)
+    timeout = cfg_parser.get_service_setting(SERVICE_NAME, 'timeout', 1200)
     manager = BaseManager()
     manager.start()
     while True:
@@ -107,7 +115,9 @@ def main():
             if source.get_type() != 'telegram':
                 pool.apply_async(get_news_from_source, args=[source])
             else:
-                get_news_from_source(source)
+                # TODO better logic
+                if int(time.time()) > telegram_timeout:
+                    get_news_from_source(source)
         elapsed_time = time.perf_counter() - start_time
         pool.close()
         pool.join()
