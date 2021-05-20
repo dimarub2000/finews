@@ -1,7 +1,9 @@
 import os
 import json
+import logging
 import parsers.lib.parser as lib_parser
 
+from telethon import errors
 from telethon import TelegramClient
 from telethon.tl.functions.messages import (GetHistoryRequest)
 from telethon.tl.types import PeerChannel
@@ -9,6 +11,11 @@ from config.config_parser import FinewsConfigParser
 
 cfg_parser = FinewsConfigParser()
 USE_MOSCOW_TIME = int(cfg_parser.get_service_setting("parsers", "use_moscow_time", 0))
+
+SERVICE_NAME = 'telegram parser'
+logging.basicConfig()
+logger = logging.getLogger(SERVICE_NAME)
+logger.setLevel(cfg_parser.get_log_level(SERVICE_NAME, 'INFO'))
 
 
 class TgParser(lib_parser.Parser):
@@ -65,6 +72,10 @@ class TgParser(lib_parser.Parser):
 
     def get_data(self):
         with self.client:
-            ans_message = self.client.loop.run_until_complete(self.process())
+            try:
+                ans_message = self.client.loop.run_until_complete(self.process())
+            except errors.FloodWaitError as e:
+                logger.info('Telegram has to sleep {} seconds'.format(e.seconds))
+                return json.dumps({'time_to_sleep': e.seconds})
 
         return json.dumps(ans_message)
