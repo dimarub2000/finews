@@ -21,6 +21,9 @@ logging.basicConfig()
 logger = logging.getLogger(SERVICE_NAME)
 logger.setLevel(cfg_parser.get_log_level(SERVICE_NAME, 'INFO'))
 
+main_markup_list = ['Новости по тикеру компании', 'Последние новости', 'Подписки', 'Поиск']
+subscribe_murkup_list = ['Подписаться', 'Отписаться', 'Мои подписки', "Выйти"]
+
 
 @bot.message_handler(commands=['start'])
 def start_handler(message):
@@ -56,7 +59,7 @@ def get_text_messages(message):
         show_news(message, news, news_feed_handler)
 
     elif message.text == "Подписки":
-        markup = markup_builder.build_markup(['Подписаться', 'Отписаться', 'Мои подписки', "Выйти"])
+        markup = markup_builder.build_markup(subscribe_murkup_list)
         bot.send_message(message.from_user.id,
                          "С помощью кнопок ты можешь легко управлять своими подписками", reply_markup=markup)
         bot.register_next_step_handler(message, get_subscription)
@@ -72,9 +75,9 @@ def get_text_messages(message):
 
 
 def get_subscription(message):
+    markup_builder = MarkupBuilder()
+    markup = markup_builder.build_markup(["Назад"])
     if message.text == "Подписаться":
-        markup_builder = MarkupBuilder()
-        markup = markup_builder.build_markup(["Назад"])
         bot.send_message(message.from_user.id, "Впиши тикер компании, которая тебя интересует"
                                                " или посмотри по каким тикерам сейчас есть новости",
                          reply_markup=markup)
@@ -102,20 +105,20 @@ def get_subscription(message):
 
 def main_menu_message(user):
     markup_builder = MarkupBuilder()
-    markup = markup_builder.build_markup(['Новости по тикеру компании', 'Последние новости', 'Подписки', 'Поиск'])
+    markup = markup_builder.build_markup(main_markup_list)
     bot.send_message(user, "Могу я еще чем-то помочь?", reply_markup=markup)
 
 
 def prev_message(message):
     markup_builder = MarkupBuilder()
-    markup = markup_builder.build_markup(['Подписаться', 'Отписаться', 'Мои подписки', "Выйти"])
+    markup = markup_builder.build_markup(subscribe_murkup_list)
     bot.send_message(message.from_user.id, "Ты вернулся в меню подписок", reply_markup=markup)
     bot.register_next_step_handler(message, get_subscription)
 
 
 def subscribe(message):
     markup_builder = MarkupBuilder()
-    markup = markup_builder.build_markup(['Подписаться', 'Отписаться', 'Мои подписки', "Выйти"])
+    markup = markup_builder.build_markup(subscribe_murkup_list)
     if message.text == "Назад":
         bot.send_message(message.from_user.id, "Ты вернулся в меню подписок", reply_markup=markup)
         bot.register_next_step_handler(message, get_subscription)
@@ -128,7 +131,7 @@ def subscribe(message):
 
 def unsubscribe(message):
     markup_builder = MarkupBuilder()
-    markup = markup_builder.build_markup(['Подписаться', 'Отписаться', 'Мои подписки', "Выйти"])
+    markup = markup_builder.build_markup(subscribe_murkup_list)
     if message.text == "Назад":
         bot.send_message(message.from_user.id, "Ты вернулся в меню подписок", reply_markup=markup)
         bot.register_next_step_handler(message, get_subscription)

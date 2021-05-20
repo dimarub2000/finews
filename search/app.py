@@ -19,17 +19,22 @@ logging.basicConfig()
 logger = logging.getLogger(SERVICE_NAME)
 logger.setLevel(cfg_parser.get_log_level(SERVICE_NAME, 'INFO'))
 
+score_treshold = cfg_parser.get_service_settings(SERVICE_NAME)["score"]
 
 def to_dict(result):
     slots = ('id', 'text', 'time', 'link', 'tags', 'source')
     res = dict()
     for slot in slots:
         res[slot] = result[slot]['raw']
+    res['score'] = result['_meta']['score']
     return res
 
 
 def response_to_list(response):
-    return list(map(lambda result: to_dict(result), response.get('results', [])))
+    return sorted(list(filter(lambda item: item['score'] >= score_treshold,
+                    list(map(lambda result: to_dict(result),
+                            response.get('results', []))))),
+                            key=lambda data: data['time'], reverse=True)
 
 
 @app.route('/search', methods=['GET'])
