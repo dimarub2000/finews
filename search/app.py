@@ -21,6 +21,7 @@ logger.setLevel(cfg_parser.get_log_level(SERVICE_NAME, 'INFO'))
 
 score_treshold = cfg_parser.get_service_settings(SERVICE_NAME)["score"]
 
+
 def to_dict(result):
     slots = ('id', 'text', 'time', 'link', 'tags', 'source')
     res = dict()
@@ -32,9 +33,9 @@ def to_dict(result):
 
 def response_to_list(response):
     return sorted(list(filter(lambda item: item['score'] >= score_treshold,
-                    list(map(lambda result: to_dict(result),
-                            response.get('results', []))))),
-                            key=lambda data: data['time'], reverse=True)
+                              list(map(lambda result: to_dict(result),
+                                       response.get('results', []))))),
+                  key=lambda data: data['time'], reverse=True)
 
 
 @app.route('/search', methods=['GET'])
@@ -54,6 +55,12 @@ def index():
     data = request.get_json()
     app_search.index_documents(engine_name="finews-main", documents=data)
     return "Indexed to Elasticsearch {} documents".format(len(data))
+
+
+@app.route('/ping', methods=['GET'])
+def ping():
+    logger.info("PING")
+    return Response(status=200)
 
 
 if __name__ == "__main__":

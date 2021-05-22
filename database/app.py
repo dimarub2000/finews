@@ -170,6 +170,12 @@ def last_time():
     return Response(json.dumps(time.time), status=200)
 
 
+@app.route('/ping', methods=['GET'])
+def ping():
+    logger.info("PING")
+    return Response(status=200)
+
+
 if __name__ == "__main__":
     db.create_all()
     app.run(port=5000)

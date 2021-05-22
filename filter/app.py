@@ -52,5 +52,11 @@ def parse_news():
     return Response(status=200)
 
 
+@app.route('/ping', methods=['GET'])
+def ping():
+    logger.info("PING")
+    return Response(status=200)
+
+
 if __name__ == '__main__':
     app.run(host='127.0.0.1', port=9001)

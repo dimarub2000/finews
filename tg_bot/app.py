@@ -41,6 +41,7 @@ def help_handler(message):
 
 @bot.message_handler(content_types=['text'])
 def get_text_messages(message):
+    logger.info("handling message from user {}".format(message.from_user.id))
     markup_builder = MarkupBuilder()
 
     if message.text == "Новости по тикеру компании":

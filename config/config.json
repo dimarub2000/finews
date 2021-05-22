@@ -32,5 +32,11 @@
             "use_moscow_time": true,
             "timeout": 1200
         }
+    },
+    "master": {
+        "log_level": "INFO",
+        "settings": {
+            "timeout": 600
+        }
     }
 }
