@@ -13,6 +13,8 @@ TG_BOT_TOKEN = os.environ['TG_BOT_TOKEN']
 logging.basicConfig()
 logger = logging.getLogger(SERVICE_NAME)
 logger.setLevel(cfg_parser.get_service_setting(SERVICE_NAME, 'log_level', 'INFO'))
+logger.setFormatter(logging.Formatter("%(asctime)s;%(levelname)s;%(message)s",
+                              "%Y-%m-%d %H:%M:%S"))
 
 
 class Service(object):

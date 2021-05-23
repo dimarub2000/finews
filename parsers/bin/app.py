@@ -20,6 +20,8 @@ SERVICE_NAME = 'parsers'
 logging.basicConfig()
 logger = logging.getLogger(SERVICE_NAME)
 logger.setLevel(cfg_parser.get_log_level(SERVICE_NAME, 'INFO'))
+logger.setFormatter(logging.Formatter("%(asctime)s;%(levelname)s;%(message)s",
+                              "%Y-%m-%d %H:%M:%S"))
 telegram_timeout = 0
 
 
