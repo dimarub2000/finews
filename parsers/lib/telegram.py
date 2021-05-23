@@ -64,7 +64,7 @@ class TgParser(lib_parser.Parser):
 
         for message in messages:
             msg = message.to_dict()
-            if ('media' in msg and 'poll' in msg['media']):
+            if msg or msg.get('media', {}).get('poll'):
                 continue
             msg = {
                 'text': msg['message'],
