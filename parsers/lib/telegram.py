@@ -63,8 +63,10 @@ class TgParser(lib_parser.Parser):
         messages = history.messages
 
         for message in messages:
+            if message is None:
+                continue
             msg = message.to_dict()
-            if not msg or msg.get('media', {}).get('poll'):
+            if msg is None or msg.get('media', {}).get('poll'):
                 continue
             msg = {
                 'text': msg['message'],
