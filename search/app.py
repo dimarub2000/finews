@@ -56,10 +56,9 @@ def search():
 
 @app.route('/index', methods=['POST'])
 def index():
-    pass
-    #data = request.get_json()
-    #app_search.index_documents(engine_name="finews-main", documents=data)
-    #return "Indexed to Elasticsearch {} documents".format(len(data))
+    data = request.get_json()
+    app_search.index_documents(engine_name="finews-main", documents=data)
+    return "Indexed to Elasticsearch {} documents".format(len(data))
 
 
 @app.route('/ping', methods=['GET'])
