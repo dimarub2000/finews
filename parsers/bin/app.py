@@ -104,6 +104,7 @@ def send(data) -> None:
     for news in data:
         logger.info("%s, %s, %s" % (news['source'], news['time'], news['link']))
     if not data:
+        logging.info("No data received")
         return
     resp = requests.post(FILTER_SERVICE_URL, json=data)
     if resp.status_code != 200:

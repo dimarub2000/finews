@@ -54,7 +54,7 @@ def parse_news():
     pool = Pool(processes=workers)
     verified_data = []
     for news in data:
-        if check_text(news["text"]):
+        if not check_text(news["text"]):
             logging.info("Text was rejected: {}".format(news["text"]))
             continue
         news["tags"] = tp.find_tags(news["text"])
