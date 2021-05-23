@@ -8,7 +8,6 @@ from sqlalchemy import desc
 
 from config.config_parser import FinewsConfigParser
 
-
 app = Flask(__name__)
 app.config.from_pyfile('database_config.py')
 db = SQLAlchemy(app)
@@ -21,7 +20,7 @@ logger.setLevel(cfg_parser.get_log_level(SERVICE_NAME, 'INFO'))
 ch = logging.StreamHandler()
 ch.setLevel(logging.DEBUG)
 ch.setFormatter(logging.Formatter(cfg_parser.get_log_format(),
-                              cfg_parser.get_date_format()))
+                                  cfg_parser.get_date_format()))
 logger.addHandler(ch)
 
 

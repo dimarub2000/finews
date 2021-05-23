@@ -14,7 +14,8 @@
         "log_level": "INFO",
         "addr": "http://127.0.0.1:9001",
         "settings": {
-            "num_workers": 4
+            "num_workers": 4,
+            "banned_words": ["стрим", "Стрим"]
         }
     },
     "tg_bot": {
@@ -41,7 +42,7 @@
         }
     },
     "common": {
-        "log_format": "%(levelname)s;%(asctime)s;%(message)s",
+        "log_format": "%(levelname)s:%(asctime)s:%(message)s",
         "date_format": "%Y-%m-%d %H:%M:%S"
     }
 }
