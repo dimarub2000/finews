@@ -93,4 +93,4 @@ def ping_loop(services):
 
 if __name__ == '__main__':
     time.sleep(60)
-    ping_loop(init_services(["filter", "database", "search"]))
+    ping_loop(init_services(["parsers", "filter", "database", "search"]))

@@ -7,10 +7,13 @@ from parsers.lib.parser import Source
 import parsers.lib.web as lib_web
 import parsers.lib.telegram as lib_tg
 from config.config_parser import FinewsConfigParser
-from multiprocessing import Pool, Manager
+from multiprocessing import Pool, Process
 from multiprocessing.managers import BaseManager
+from flask import Flask, Response
 
 from typing import List
+
+app = Flask(__name__)
 
 cfg_parser = FinewsConfigParser()
 FILTER_SERVICE_URL = cfg_parser.get_service_url('filter')
@@ -116,10 +119,9 @@ def main():
         for source in sources:
             if source.get_type() != 'telegram':
                 pool.apply_async(get_news_from_source, args=[source])
-            else:
-                # TODO better logic
-                if int(time.time()) > telegram_timeout:
-                    get_news_from_source(source)
+            # TODO better logic
+            elif int(time.time()) > telegram_timeout:
+                get_news_from_source(source)
         elapsed_time = time.perf_counter() - start_time
         pool.close()
         pool.join()
@@ -127,5 +129,17 @@ def main():
         time.sleep(timeout)
 
 
+def flask_run():
+    app.run(port=9004)
+
+
+@app.route('/ping', methods=['GET'])
+def ping():
+    logger.info("PING")
+    return Response(status=200)
+
+
 if __name__ == '__main__':
+    p = Process(target=flask_run())
+    p.start()
     main()
