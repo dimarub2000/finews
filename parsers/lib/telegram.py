@@ -66,7 +66,8 @@ class TgParser(lib_parser.Parser):
             msg = message.to_dict()
             if not isinstance(msg, dict):
                 continue
-            if msg.get('media', {}).get('poll'):
+            media = msg.get('media')
+            if media and media.get('poll'):
                 continue
             msg = {
                 'text': msg['message'],
