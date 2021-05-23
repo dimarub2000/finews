@@ -25,7 +25,7 @@ logger.setLevel(cfg_parser.get_log_level(SERVICE_NAME, 'INFO'))
 ch = logging.StreamHandler()
 ch.setLevel(logging.DEBUG)
 ch.setFormatter(logging.Formatter(cfg_parser.get_log_format(),
-                              cfg_parser.get_date_format()))
+                                  cfg_parser.get_date_format()))
 logger.addHandler(ch)
 telegram_timeout = 0
 

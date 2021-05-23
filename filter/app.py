@@ -23,7 +23,7 @@ logger.setLevel(cfg_parser.get_service_setting(SERVICE_NAME, 'log_level', 'INFO'
 ch = logging.StreamHandler()
 ch.setLevel(logging.DEBUG)
 ch.setFormatter(logging.Formatter(cfg_parser.get_log_format(),
-                              cfg_parser.get_date_format()))
+                                  cfg_parser.get_date_format()))
 logger.addHandler(ch)
 
 
@@ -31,6 +31,17 @@ def send_message(chat_id, text):
     url = r'https://api.telegram.org/bot{}/{}'.format(TG_BOT_TOKEN, "sendMessage")
     logger.info('Sending subscription to %s' % chat_id)
     requests.post(url, data={"chat_id": chat_id, "text": text, "disable_web_page_preview": True})
+
+
+def check_text(text):
+    min_size_text = cfg_parser.get_service_setting(SERVICE_NAME, "min_size_text", 100)
+    banned_words = cfg_parser.get_service_setting(SERVICE_NAME, "banned_words", [])
+    if len(text) < min_size_text:
+        return False
+    for word in banned_words:
+        if word in text:
+            return False
+    return True
 
 
 @app.route('/', methods=['POST'])
@@ -41,8 +52,13 @@ def parse_news():
     logger.info("Parsing data...")
     start_time = time.perf_counter()
     pool = Pool(processes=workers)
+    verified_data = []
     for news in data:
+        if check_text(news["text"]):
+            logging.info("Text was rejected: {}".format(news["text"]))
+            continue
         news["tags"] = tp.find_tags(news["text"])
+        verified_data.append(news)
         resp = requests.get(DATABASE_URI + '/get_subscribers', json=news["tags"])
         for subscriber in resp.json():
             pool.apply_async(send_message, args=(subscriber, MessageBuilder().build_message(news)))
@@ -50,8 +66,8 @@ def parse_news():
     pool.close()
     elapsed_time = time.perf_counter() - start_time
     logger.info(f"Elapsed time: {elapsed_time:0.4f} seconds")
-    requests.post(DATABASE_URI + '/news', json=data)
-    requests.post(SEARCH_URI + '/index', json=data)
+    requests.post(DATABASE_URI + '/news', json=verified_data)
+    requests.post(SEARCH_URI + '/index', json=verified_data)
     pool.join()
     return Response(status=200)
 
