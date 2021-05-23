@@ -64,6 +64,8 @@ class TgParser(lib_parser.Parser):
 
         for message in messages:
             msg = message.to_dict()
+            if ('media' in msg and 'poll' in msg['media']):
+                continue
             msg = {
                 'text': msg['message'],
                 'time': msg['date'].timestamp() + USE_MOSCOW_TIME * 3*60*60,
