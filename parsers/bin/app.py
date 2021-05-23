@@ -103,6 +103,8 @@ def get_news_from_source(source: lib_parser.Source) -> None:
 def send(data) -> None:
     for news in data:
         logger.info("%s, %s, %s" % (news['source'], news['time'], news['link']))
+    if not data:
+        return
     resp = requests.post(FILTER_SERVICE_URL, json=data)
     if resp.status_code != 200:
         logger.critical(resp.text)
