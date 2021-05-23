@@ -15,13 +15,12 @@ SERVICE_NAME = 'search'
 cfg_parser = FinewsConfigParser()
 app_search = AppSearch(SEARCH_HOST, http_auth=SEARCH_AUTH)
 
-logging.basicConfig()
 logger = logging.getLogger(SERVICE_NAME)
 logger.setLevel(cfg_parser.get_log_level(SERVICE_NAME, 'INFO'))
 ch = logging.StreamHandler()
 ch.setLevel(logging.DEBUG)
-ch.setFormatter(logging.Formatter("%(asctime)s;%(levelname)s;%(message)s",
-                              "%Y-%m-%d %H:%M:%S"))
+ch.setFormatter(logging.Formatter(cfg_parser.get_log_format(),
+                              cfg_parser.get_date_format()))
 logger.addHandler(ch)
 score_treshold = cfg_parser.get_service_settings(SERVICE_NAME)["score"]
 

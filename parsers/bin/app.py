@@ -20,13 +20,12 @@ FILTER_SERVICE_URL = cfg_parser.get_service_url('filter')
 DATABASE_URL = cfg_parser.get_service_url('database')
 SERVICE_NAME = 'parsers'
 
-logging.basicConfig()
 logger = logging.getLogger(SERVICE_NAME)
 logger.setLevel(cfg_parser.get_log_level(SERVICE_NAME, 'INFO'))
 ch = logging.StreamHandler()
 ch.setLevel(logging.DEBUG)
-ch.setFormatter(logging.Formatter("%(asctime)s;%(levelname)s;%(message)s",
-                              "%Y-%m-%d %H:%M:%S"))
+ch.setFormatter(logging.Formatter(cfg_parser.get_log_format(),
+                              cfg_parser.get_date_format()))
 logger.addHandler(ch)
 telegram_timeout = 0
 

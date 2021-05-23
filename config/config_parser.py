@@ -23,3 +23,11 @@ class FinewsConfigParser(object):
         if log_level is None:
             return default_val
         return log_level
+
+    def get_log_format(self) -> str:
+        log_format = self.data.get("common", {}).get('log_format')
+        return log_format
+
+    def get_date_format(self) -> str:
+        date_format = self.data.get("common", {}).get('date_format')
+        return date_format

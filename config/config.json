@@ -39,5 +39,9 @@
         "settings": {
             "timeout": 600
         }
+    },
+    "common": {
+        "log_format": "%(levelname)s;%(asctime)s;%(message)s",
+        "date_format": "%Y-%m-%d %H:%M:%S"
     }
 }

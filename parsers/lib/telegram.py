@@ -13,13 +13,12 @@ cfg_parser = FinewsConfigParser()
 USE_MOSCOW_TIME = int(cfg_parser.get_service_setting("parsers", "use_moscow_time", 0))
 
 SERVICE_NAME = 'telegram parser'
-logging.basicConfig()
 logger = logging.getLogger(SERVICE_NAME)
 logger.setLevel(cfg_parser.get_log_level(SERVICE_NAME, 'INFO'))
 ch = logging.StreamHandler()
 ch.setLevel(logging.DEBUG)
-ch.setFormatter(logging.Formatter("%(asctime)s;%(levelname)s;%(message)s",
-                              "%Y-%m-%d %H:%M:%S"))
+ch.setFormatter(logging.Formatter(cfg_parser.get_log_format(),
+                              cfg_parser.get_date_format()))
 logger.addHandler(ch)
 
 
