@@ -128,7 +128,7 @@ def main():
 
 
 def flask_run():
-    app.run(port=9004)
+    app.run(port=9003)
 
 
 @app.route('/ping', methods=['GET'])
@@ -138,6 +138,6 @@ def ping():
 
 
 if __name__ == '__main__':
-    p = Process(target=flask_run())
+    p = Process(target=flask_run)
     p.start()
     main()

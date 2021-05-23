@@ -26,6 +26,7 @@
     },
     "parsers": {
         "log_level": "INFO",
+        "addr": "http://127.0.0.1:9003",
         "settings": {
             "web_sources_limit": 5,
             "tg_sources_limit": 20,
