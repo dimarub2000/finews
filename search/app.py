@@ -18,8 +18,11 @@ app_search = AppSearch(SEARCH_HOST, http_auth=SEARCH_AUTH)
 logging.basicConfig()
 logger = logging.getLogger(SERVICE_NAME)
 logger.setLevel(cfg_parser.get_log_level(SERVICE_NAME, 'INFO'))
-logger.setFormatter(logging.Formatter("%(asctime)s;%(levelname)s;%(message)s",
+ch = logging.StreamHandler()
+ch.setLevel(logging.DEBUG)
+ch.setFormatter(logging.Formatter("%(asctime)s;%(levelname)s;%(message)s",
                               "%Y-%m-%d %H:%M:%S"))
+logger.addHandler(ch)
 score_treshold = cfg_parser.get_service_settings(SERVICE_NAME)["score"]
 
 
@@ -53,9 +56,10 @@ def search():
 
 @app.route('/index', methods=['POST'])
 def index():
-    data = request.get_json()
-    app_search.index_documents(engine_name="finews-main", documents=data)
-    return "Indexed to Elasticsearch {} documents".format(len(data))
+    pass
+    #data = request.get_json()
+    #app_search.index_documents(engine_name="finews-main", documents=data)
+    #return "Indexed to Elasticsearch {} documents".format(len(data))
 
 
 @app.route('/ping', methods=['GET'])

@@ -21,8 +21,11 @@ SERVICE_NAME = 'filter'
 logging.basicConfig()
 logger = logging.getLogger(SERVICE_NAME)
 logger.setLevel(cfg_parser.get_service_setting(SERVICE_NAME, 'log_level', 'INFO'))
-logger.setFormatter(logging.Formatter("%(asctime)s;%(levelname)s;%(message)s",
+ch = logging.StreamHandler()
+ch.setLevel(logging.DEBUG)
+ch.setFormatter(logging.Formatter("%(asctime)s;%(levelname)s;%(message)s",
                               "%Y-%m-%d %H:%M:%S"))
+logger.addHandler(ch)
 
 
 def send_message(chat_id, text):

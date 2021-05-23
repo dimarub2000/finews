@@ -20,8 +20,11 @@ SERVICE_NAME = 'tg_bot'
 logging.basicConfig()
 logger = logging.getLogger(SERVICE_NAME)
 logger.setLevel(cfg_parser.get_log_level(SERVICE_NAME, 'INFO'))
-logger.setFormatter(logging.Formatter("%(asctime)s;%(levelname)s;%(message)s",
+ch = logging.StreamHandler()
+ch.setLevel(logging.DEBUG)
+ch.setFormatter(logging.Formatter("%(asctime)s;%(levelname)s;%(message)s",
                               "%Y-%m-%d %H:%M:%S"))
+logger.addHandler(ch)
 
 main_markup_list = ['Новости по тикеру компании', 'Последние новости', 'Подписки', 'Поиск']
 subscribe_murkup_list = ['Подписаться', 'Отписаться', 'Мои подписки', "Выйти"]
