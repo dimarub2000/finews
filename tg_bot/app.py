@@ -204,6 +204,7 @@ def get_tag(message):
 def get_query(message):
     if message.text is None:
         bot.register_next_step_handler(message, get_query)
+        bot.send_message(message.from_user.id, "Впишите текстом =)")
         return
     if message.text == "Выйти":
         main_menu_message(message.from_user.id)
