@@ -124,6 +124,8 @@ def prev_message(message):
 def subscribe(message):
     markup_builder = MarkupBuilder()
     markup = markup_builder.build_markup(subscribe_murkup_list)
+    if message.text is None:
+        main_menu_message(message.from_user.id)
     if message.text == "Назад":
         bot.send_message(message.from_user.id, "Ты вернулся в меню подписок", reply_markup=markup)
         bot.register_next_step_handler(message, get_subscription)
@@ -137,6 +139,8 @@ def subscribe(message):
 def unsubscribe(message):
     markup_builder = MarkupBuilder()
     markup = markup_builder.build_markup(subscribe_murkup_list)
+    if message.text is None:
+        main_menu_message(message.from_user.id)
     if message.text == "Назад":
         bot.send_message(message.from_user.id, "Ты вернулся в меню подписок", reply_markup=markup)
         bot.register_next_step_handler(message, get_subscription)
@@ -165,7 +169,7 @@ def get_all_tickers(tickers_list):
         ans += item
     return ans
 
-
+@bot.message_handler(content_types=['text'])
 def get_tag(message):
     if message.text == "Все тикеры":
         tickers_list = list(map(lambda x: '$' + x, requests.get(DATABASE_URI + '/tags').json()))
@@ -176,6 +180,8 @@ def get_tag(message):
     elif message.text == "Выйти":
         main_menu_message(message.from_user.id)
     else:
+        if message.text is None:
+            main_menu_message(message.from_user.id)
         user_tag = message.text.replace('$', '').upper()
         limit = cfg_parser.get_service_setting(SERVICE_NAME, 'max_feed_size', 30)
         page_size = cfg_parser.get_service_setting(SERVICE_NAME, 'page_size', 3)
@@ -190,11 +196,13 @@ def get_tag(message):
         news = news_feed_handler.get_new_page()
         show_news(message, news, news_feed_handler)
 
-
+@bot.message_handler(content_types=['text'])
 def get_query(message):
     if message.text == "Выйти":
         main_menu_message(message.from_user.id)
         return
+    if message.text is None:
+        main_menu_message(message.from_user.id)
     user_query = message.text
     limit = cfg_parser.get_service_setting(SERVICE_NAME, 'max_feed_size', 30)
     page_size = cfg_parser.get_service_setting(SERVICE_NAME, 'page_size', 3)
