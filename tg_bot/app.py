@@ -49,7 +49,7 @@ def get_text_messages(message):
     markup_builder = MarkupBuilder()
 
     if message.text == "Новости по тикеру компании":
-        markup = markup_builder.build_markup(['$TSLA', '$GOOGL', '$WMT', 'Все тикеры', 'Выйти'])
+        markup = markup_builder.build_markup(['/TSLA', '/GOOGL', '/WMT', 'Все тикеры', 'Выйти'])
         bot.send_message(message.from_user.id, "Впиши тикер компании, которая тебя интересует"
                                                " или посмотри по каким тикерам сейчас есть новости",
                          reply_markup=markup)
@@ -96,7 +96,7 @@ def get_subscription(message):
 
     elif message.text == "Мои подписки":
         tickers_list = list(
-            map(lambda x: '$' + x,
+            map(lambda x: '/' + x,
                 requests.get(DATABASE_URI + '/all_subscriptions?user_id={}'.format(message.from_user.id)).json()))
         if len(tickers_list) == 0:
             bot.send_message(message.from_user.id, "На данный момент у тебя нет подписок")
@@ -125,13 +125,14 @@ def subscribe(message):
     markup_builder = MarkupBuilder()
     markup = markup_builder.build_markup(subscribe_murkup_list)
     if message.text is None:
-        main_menu_message(message.from_user.id)
+        bot.send_message(message.from_user.id, "Впишите текстом =)")
+        bot.register_next_step_handler(message, subscribe)
         return
     if message.text == "Назад":
         bot.send_message(message.from_user.id, "Ты вернулся в меню подписок", reply_markup=markup)
         bot.register_next_step_handler(message, get_subscription)
         return
-    user_tag = message.text.replace('$', '').upper()
+    user_tag = message.text.replace('/', '').upper()
     requests.post(DATABASE_URI + '/subscribe', json={"user_id": message.from_user.id, "tag": user_tag})
     bot.send_message(message.from_user.id, "Ты подписался на новости компании {}".format(user_tag), reply_markup=markup)
     bot.register_next_step_handler(message, get_subscription)
@@ -141,7 +142,8 @@ def unsubscribe(message):
     markup_builder = MarkupBuilder()
     markup = markup_builder.build_markup(subscribe_murkup_list)
     if message.text is None:
-        main_menu_message(message.from_user.id)
+        bot.send_message(message.from_user.id, "Впишите текстом =)")
+        bot.register_next_step_handler(message, unsubscribe)
         return
     if message.text == "Назад":
         bot.send_message(message.from_user.id, "Ты вернулся в меню подписок", reply_markup=markup)
@@ -152,7 +154,7 @@ def unsubscribe(message):
         bot.send_message(message.from_user.id, "Ты отписался от всех текущих рассылок", reply_markup=markup)
         bot.register_next_step_handler(message, get_subscription)
         return
-    user_tag = message.text.replace('$', '').upper()
+    user_tag = message.text.replace('/', '').upper()
     response = requests.delete(DATABASE_URI + '/unsubscribe', json={"user_id": message.from_user.id, "tag": user_tag})
     if response.status_code == 400:
         bot.send_message(message.from_user.id, "Кажется, ты не был подписан на новости этой компании!",
@@ -174,15 +176,17 @@ def get_all_tickers(tickers_list):
 @bot.message_handler(content_types=['text'])
 def get_tag(message):
     if message.text == "Все тикеры":
-        tickers_list = list(map(lambda x: '$' + x, requests.get(DATABASE_URI + '/tags').json()))
+        tickers_list = list(map(lambda x: '/' + x, requests.get(DATABASE_URI + '/tags').json()))
         tickers = get_all_tickers(tickers_list)
         bot.send_message(message.from_user.id, tickers)
         bot.register_next_step_handler(message, get_tag)
-
-    elif message.text is None or message.text == "Выйти":
+    elif  message.text == "Выйти":
         main_menu_message(message.from_user.id)
+    elif message.text is None:
+        bot.send_message(message.from_user.id, "Впишите текстом =)")
+        bot.register_next_step_handler(message, get_tag)
     else:
-        user_tag = message.text.replace('$', '').upper()
+        user_tag = message.text.replace('/', '').upper()
         limit = cfg_parser.get_service_setting(SERVICE_NAME, 'max_feed_size', 30)
         page_size = cfg_parser.get_service_setting(SERVICE_NAME, 'page_size', 3)
         response = requests.get(DATABASE_URI + '/top?tag={}&limit={}'.format(user_tag, limit))
@@ -198,7 +202,9 @@ def get_tag(message):
 
 @bot.message_handler(content_types=['text'])
 def get_query(message):
-    if message.text is None or message.text == "Выйти":
+    if message.text is None:
+        bot.register_next_step_handler(message, get_query)
+    if message.text == "Выйти":
         main_menu_message(message.from_user.id)
         return
     user_query = message.text
