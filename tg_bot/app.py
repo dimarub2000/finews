@@ -49,7 +49,7 @@ def get_text_messages(message):
     markup_builder = MarkupBuilder()
 
     if message.text == "Новости по тикеру компании":
-        markup = markup_builder.build_markup(['/TSLA', '/GOOGL', '/WMT', 'Все тикеры', 'Выйти'])
+        markup = markup_builder.build_markup(['TSLA', 'GOOGL', 'YNDX', 'Все тикеры', 'Выйти'])
         bot.send_message(message.from_user.id, "Впиши тикер компании, которая тебя интересует"
                                                " или посмотри по каким тикерам сейчас есть новости",
                          reply_markup=markup)
@@ -204,6 +204,7 @@ def get_tag(message):
 def get_query(message):
     if message.text is None:
         bot.register_next_step_handler(message, get_query)
+        return
     if message.text == "Выйти":
         main_menu_message(message.from_user.id)
         return
