@@ -22,7 +22,7 @@ logger.setLevel(cfg_parser.get_log_level(SERVICE_NAME, 'INFO'))
 ch = logging.StreamHandler()
 ch.setLevel(logging.DEBUG)
 ch.setFormatter(logging.Formatter(cfg_parser.get_log_format(),
-                              cfg_parser.get_date_format()))
+                                  cfg_parser.get_date_format()))
 logger.addHandler(ch)
 
 main_markup_list = ['Новости по тикеру компании', 'Последние новости', 'Подписки', 'Поиск']
@@ -133,6 +133,8 @@ def subscribe(message):
         bot.register_next_step_handler(message, get_subscription)
         return
     user_tag = message.text.replace('/', '').upper()
+    if user_tag.startswith('$'):
+        user_tag = user_tag[1:]
     requests.post(DATABASE_URI + '/subscribe', json={"user_id": message.from_user.id, "tag": user_tag})
     bot.send_message(message.from_user.id, "Ты подписался на новости компании {}".format(user_tag), reply_markup=markup)
     bot.register_next_step_handler(message, get_subscription)
@@ -155,6 +157,8 @@ def unsubscribe(message):
         bot.register_next_step_handler(message, get_subscription)
         return
     user_tag = message.text.replace('/', '').upper()
+    if user_tag.startswith('$'):
+        user_tag = user_tag[1:]
     response = requests.delete(DATABASE_URI + '/unsubscribe', json={"user_id": message.from_user.id, "tag": user_tag})
     if response.status_code == 400:
         bot.send_message(message.from_user.id, "Кажется, ты не был подписан на новости этой компании!",
@@ -173,6 +177,7 @@ def get_all_tickers(tickers_list):
         ans += item
     return ans
 
+
 @bot.message_handler(content_types=['text'])
 def get_tag(message):
     if message.text == "Все тикеры":
@@ -180,13 +185,15 @@ def get_tag(message):
         tickers = get_all_tickers(tickers_list)
         bot.send_message(message.from_user.id, tickers)
         bot.register_next_step_handler(message, get_tag)
-    elif  message.text == "Выйти":
+    elif message.text == "Выйти":
         main_menu_message(message.from_user.id)
     elif message.text is None:
         bot.send_message(message.from_user.id, "Впишите текстом =)")
         bot.register_next_step_handler(message, get_tag)
     else:
         user_tag = message.text.replace('/', '').upper()
+        if user_tag.startswith('$'):
+            user_tag = user_tag[1:]
         limit = cfg_parser.get_service_setting(SERVICE_NAME, 'max_feed_size', 30)
         page_size = cfg_parser.get_service_setting(SERVICE_NAME, 'page_size', 3)
         response = requests.get(DATABASE_URI + '/top?tag={}&limit={}'.format(user_tag, limit))
@@ -199,6 +206,7 @@ def get_tag(message):
         news_feed_handler = NewsFeedHandler(response.json(), page_size)
         news = news_feed_handler.get_new_page()
         show_news(message, news, news_feed_handler)
+
 
 @bot.message_handler(content_types=['text'])
 def get_query(message):
