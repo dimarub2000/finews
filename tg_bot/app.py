@@ -182,8 +182,12 @@ def get_all_tickers(tickers_list):
 def get_tag(message):
     if message.text == "Все тикеры":
         tickers_list = list(map(lambda x: '/' + x, requests.get(DATABASE_URI + '/tags').json()))
-        tickers = get_all_tickers(tickers_list)
-        bot.send_message(message.from_user.id, tickers)
+        max_tags_limit = cfg_parser.get_service_setting(SERVICE_NAME, "max_tags", 400)
+        cur_pos = 0
+        while cur_pos < len(tickers_list):
+            tickers = get_all_tickers(tickers_list[cur_pos:(cur_pos + max_tags_limit)])
+            bot.send_message(message.from_user.id, tickers)
+            cur_pos = cur_pos + max_tags_limit
         bot.register_next_step_handler(message, get_tag)
     elif message.text == "Выйти":
         main_menu_message(message.from_user.id)

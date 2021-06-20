@@ -15,14 +15,16 @@
         "addr": "http://127.0.0.1:9001",
         "settings": {
             "num_workers": 4,
-            "banned_words": ["стрим", "Стрим"]
+            "banned_words": ["стрим", "Стрим"],
+            "max_size_test": 200
         }
     },
     "tg_bot": {
         "log_level": "INFO",
         "settings": {
             "page_size": 3,
-            "max_feed_size": 30
+            "max_feed_size": 30,
+            "max_tags": 400
         }
     },
     "parsers": {
