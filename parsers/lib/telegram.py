@@ -64,7 +64,7 @@ class TgParser(lib_parser.Parser):
 
         for message in messages:
             msg = message.to_dict()
-            if not isinstance(msg, dict):
+            if not isinstance(msg, dict) or 'message' not in msg.keys():
                 continue
             media = msg.get('media')
             if media and media.get('poll'):
