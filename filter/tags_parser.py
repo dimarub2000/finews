@@ -5,7 +5,7 @@ class TagsParser(object):
     @staticmethod
     def __parse_tag(text, start):
         ticker = ""
-        while start != len(text) and text[start].isalpha():
+        while start != len(text) and text[start].isalpha() and text[start].isascii():
             ticker += text[start]
             start += 1
         return ticker
