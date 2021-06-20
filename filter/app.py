@@ -66,11 +66,10 @@ def parse_news():
     pool.close()
     elapsed_time = time.perf_counter() - start_time
     logger.info(f"Elapsed time: {elapsed_time:0.4f} seconds")
-    if not verified_data:
-	return Response(status=200)
-    requests.post(DATABASE_URI + '/news', json=verified_data)
-    requests.post(SEARCH_URI + '/index', json=verified_data)
     pool.join()
+    if verified_data:
+        requests.post(DATABASE_URI + '/news', json=verified_data)
+        requests.post(SEARCH_URI + '/index', json=verified_data)
     return Response(status=200)
 
 
