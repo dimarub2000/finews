@@ -20,11 +20,13 @@ logger.addHandler(ch)
 
 
 class Service(object):
-    def __init__(self, service_url, service_name, path_to_logs, admins):
+    def __init__(self, service_url, service_name, path_to_logs, admins, path_to_script):
         self.service_url = service_url
         self.service_name = service_name
         self.path_to_logs = path_to_logs
         self.admins = admins
+        self.path_to_script = path_to_script
+        self.failed_pings = 0
 
     def ping(self):
         try:
@@ -66,6 +68,13 @@ class Service(object):
             logger.info('Sending logs to %s' % admin)
             requests.post(url, data={"chat_id": admin, "text": log, "disable_web_page_preview": True})
 
+    def restart_service(self):
+        if self.failed_pings < 3:
+            return
+        logger.info("Restarting service %s" % self.service_name)
+        self.failed_pings = 0
+        os.system("bash " + self.path_to_logs)
+
 
 def init_services(service_names):
     services = []
@@ -77,7 +86,8 @@ def init_services(service_names):
         services.append(Service(cfg_parser.get_service_url(service),
                                 service,
                                 "".join([service, '/', service, '.err']),
-                                admins))
+                                admins,
+                                "".join([service, '/', 'run.sh'])))
         logger.info("watching service: " + service)
     return services
 
@@ -89,7 +99,9 @@ def ping_loop(services):
             logger.info("ping {}".format(service.service_name))
             status = service.ping()
             if status != 200:
+                service.failed_pings += 1
                 service.send_logs(status)
+                service.restart_service()
         time.sleep(timeout)
 
 
